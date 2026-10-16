@@ -1,0 +1,339 @@
+:host {
+  display: block;
+}
+
+.dashboard-page {
+  width: 100%;
+  max-width: 1500px;
+  margin: 0 auto;
+}
+
+.page-header {
+  margin-bottom: 28px;
+}
+
+.page-header h2 {
+  margin: 0;
+
+  font-size: var(--font-title);
+  font-weight: 700;
+
+  letter-spacing: -0.4px;
+
+  color: var(--text);
+}
+
+.page-header p {
+  margin: 7px 0 0;
+
+  font-size: var(--font-body);
+  line-height: 1.6;
+
+  color: var(--muted);
+}
+
+
+
+.section-block {
+  margin-bottom: 26px;
+}
+
+
+.section-heading {
+  margin-bottom: 13px;
+}
+
+.section-heading h3 {
+  margin: 0;
+
+  font-size: var(--font-body);
+  font-weight: 600;
+
+  color: var(--text);
+}
+
+.section-heading span {
+  display: block;
+
+  margin-top: 3px;
+
+  font-size: var(--font-caption);
+
+  color: var(--muted);
+}
+
+.stats-grid {
+  display: grid;
+
+  grid-template-columns:
+    repeat(3, minmax(0, 1fr));
+
+  gap: 16px;
+}
+
+.stats-grid.four {
+  grid-template-columns:
+    repeat(4, minmax(0, 1fr));
+}
+
+.stat-card {
+  min-height: 90px;
+
+  display: flex;
+  align-items: center;
+
+  gap: 14px;
+
+  padding: 19px;
+
+  border: 1px solid var(--line);
+
+  border-radius: 10px;
+
+  background: var(--surface);
+}
+
+.stat-icon {
+  width: 42px;
+  height: 42px;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  flex-shrink: 0;
+
+  border-radius: 9px;
+
+  background: var(--accent-soft);
+
+  color: var(--accent-ink);
+}
+
+.stat-icon svg {
+  width: 20px;
+  height: 20px;
+
+  stroke-width: 1.8;
+}
+
+.stat-content {
+  display: flex;
+  flex-direction: column;
+
+  gap: 4px;
+}
+
+.stat-content span {
+  font-size: var(--font-small);
+
+  color: var(--muted);
+}
+
+.stat-content strong {
+  font-size: var(--font-title);
+  font-weight: 700;
+
+  color: var(--text);
+}
+
+
+
+.dashboard-grid {
+  display: grid;
+
+  grid-template-columns:
+    repeat(2, minmax(0, 1fr));
+
+  gap: 18px;
+
+  margin-bottom: 20px;
+}
+
+.panel {
+  min-height: 290px;
+
+  overflow: hidden;
+
+  border: 1px solid var(--line);
+
+  border-radius: 10px;
+
+  background: var(--surface);
+}
+
+.panel-header {
+  padding: 20px 22px;
+
+  border-bottom: 1px solid var(--line);
+}
+
+.panel-header h3 {
+  margin: 0;
+
+  font-size: var(--font-label);
+  font-weight: 600;
+
+  color: var(--text);
+}
+
+.panel-header p {
+  margin: 5px 0 0;
+
+  font-size: var(--font-small);
+
+  color: var(--muted);
+}
+
+
+
+.empty-state {
+  min-height: 220px;
+
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+
+  padding: 30px;
+
+  text-align: center;
+}
+
+.empty-state svg {
+  width: 28px;
+  height: 28px;
+
+  margin-bottom: 12px;
+
+  color: var(--muted);
+
+  stroke-width: 1.7;
+}
+
+.empty-state h4 {
+  margin: 0 0 5px;
+
+  font-size: var(--font-body);
+  font-weight: 600;
+
+  color: var(--text);
+}
+
+.empty-state p {
+  margin: 0;
+
+  max-width: 260px;
+
+  font-size: var(--font-caption);
+  line-height: 1.6;
+
+  color: var(--muted);
+}
+
+
+
+.camera-panel {
+  min-height: 0;
+}
+
+.camera-stats {
+  display: grid;
+
+  grid-template-columns:
+    repeat(4, 1fr);
+}
+
+.camera-item {
+  min-height: 92px;
+
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+
+  padding: 20px 24px;
+
+  border-right:
+    1px solid var(--line);
+}
+
+
+.camera-item:last-child {
+  border-right: none;
+}
+
+
+.camera-label {
+  margin-bottom: 7px;
+
+  font-size: var(--font-caption);
+
+  color: var(--muted);
+}
+
+
+.camera-item strong {
+  font-size: var(--font-title);
+
+  color: var(--text);
+}
+
+@media (max-width: 1100px) {
+
+  .stats-grid.four {
+    grid-template-columns:
+      repeat(2, 1fr);
+  }
+
+}
+
+
+@media (max-width: 850px) {
+
+  .dashboard-page {
+    padding: 24px 20px;
+  }
+
+
+  .stats-grid,
+  .dashboard-grid {
+    grid-template-columns:
+      1fr;
+  }
+
+
+  .camera-stats {
+    grid-template-columns:
+      repeat(2, 1fr);
+  }
+
+
+  .camera-item:nth-child(2) {
+    border-right: none;
+  }
+
+}
+
+
+@media (max-width: 500px) {
+
+  .stats-grid.four,
+  .camera-stats {
+    grid-template-columns:
+      1fr;
+  }
+
+
+  .camera-item {
+    border-right: none;
+
+    border-bottom:
+      1px solid var(--line);
+  }
+
+
+  .camera-item:last-child {
+    border-bottom: none;
+  }
+
+}

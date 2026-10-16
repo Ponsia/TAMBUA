@@ -1,0 +1,222 @@
+<div class="missing-persons-page">
+  @if (loading) {
+    <p role="status">Loading records...</p>
+  }
+  @if (errorMessage) {
+    <p role="alert">
+      {{ errorMessage }}
+      <button type="button" (click)="reload()" [disabled]="loading || saving">Retry</button>
+    </p>
+  }
+  @if (relatedError) {
+    <p role="status">{{ relatedError }}</p>
+  }
+
+  <header class="page-header">
+    <div>
+      <h1>Missing Persons</h1>
+      <p>Monitor missing person cases registered in the e-TAMBUA system.</p>
+    </div>
+  </header>
+
+  <section class="summary-grid">
+    <article class="summary-card">
+      <div class="summary-icon">
+        <svg lucideUserSearch></svg>
+      </div>
+
+      <div class="summary-info">
+        <span>Total Cases</span>
+        <strong>{{ loaded ? count() : '—' }}</strong>
+        <small>All registered cases</small>
+      </div>
+    </article>
+
+    <article class="summary-card">
+      <div class="summary-icon">
+        <svg lucideFolderOpen></svg>
+      </div>
+
+      <div class="summary-info">
+        <span>Open Cases</span>
+        <strong>{{ loaded ? count('OPEN') : '—' }}</strong>
+        <small>Currently under investigation</small>
+      </div>
+    </article>
+
+    <article class="summary-card">
+      <div class="summary-icon">
+        <svg lucideUserCheck></svg>
+      </div>
+
+      <div class="summary-info">
+        <span>Found</span>
+        <strong>{{ loaded ? count('FOUND') : '—' }}</strong>
+        <small>Persons successfully found</small>
+      </div>
+    </article>
+
+    <article class="summary-card">
+      <div class="summary-icon">
+        <svg lucideCircleCheck></svg>
+      </div>
+
+      <div class="summary-info">
+        <span>Closed Cases</span>
+        <strong>{{ loaded ? count('CLOSED') : '—' }}</strong>
+        <small>Completed cases</small>
+      </div>
+    </article>
+  </section>
+
+  <section class="cases-card">
+    <div class="cases-header">
+      <div>
+        <h2>Case Records</h2>
+        <p>Browse and monitor all registered missing person cases.</p>
+      </div>
+
+      <span class="record-count"> {{ filteredRecords.length }} cases </span>
+    </div>
+
+    <div class="cases-toolbar">
+      <div class="search-field">
+        <svg lucideSearch></svg>
+
+        <input
+          [(ngModel)]="searchTerm"
+          (ngModelChange)="filtersChanged()"
+          type="text"
+          placeholder="Search displayed cases..."
+        />
+      </div>
+
+      <div class="toolbar-actions">
+        <select
+          [(ngModel)]="selectedStatus"
+          (ngModelChange)="filtersChanged()"
+          aria-label="Filter by status"
+        >
+          <option value="ALL">All statuses</option>
+          <option value="OPEN">Open</option>
+          <option value="FOUND">Found</option>
+          <option value="CLOSED">Closed</option>
+        </select>
+
+        <select
+          [(ngModel)]="selectedCategory"
+          (ngModelChange)="filtersChanged()"
+          aria-label="Filter by category"
+        >
+          <option value="ALL">All categories</option>
+          <option value="CHILD">Child</option>
+          <option value="ELDERLY">Elderly</option>
+          <option value="TRAFFICKING_VICTIM">Trafficking Victim</option>
+        </select>
+
+        <button type="button" class="filter-button" (click)="filtersChanged()">
+          <svg lucideSlidersHorizontal></svg>
+          Filters
+        </button>
+      </div>
+    </div>
+
+    <div class="table-container">
+      <table>
+        <thead>
+          <tr>
+            <th>PERSON</th>
+            <th>CATEGORY</th>
+            <th>LAST SEEN LOCATION</th>
+            <th>LAST SEEN DATE</th>
+            <th>REPORTING CONTACT</th>
+            <th>STATUS</th>
+            <th></th>
+          </tr>
+        </thead>
+
+        <tbody>
+          @for (record of displayedRecords; track record.id) {
+            <tr>
+              <td>{{ record.fullName }}</td>
+              <td>{{ record.category }}</td>
+              <td>{{ record.lastSeenLocation }}</td>
+              <td>{{ (record.lastSeenDate | date: 'mediumDate') || '—' }}</td>
+              <td>{{ record.reportingContact }}</td>
+              <td>{{ record.status }}</td>
+              <td>
+                <button type="button" class="view-button" (click)="viewRecord(record)">View</button>
+                @if (canManage) {
+                  <button
+                    type="button"
+                    class="view-button"
+                    (click)="openForm(record)"
+                    [disabled]="saving"
+                  >
+                    Edit
+                  </button>
+                }
+              </td>
+            </tr>
+          } @empty {
+            @if (loaded && !loading && !errorMessage) {
+              <tr class="empty-row">
+                <td colspan="7">
+                  <div class="empty-state">
+                    <div class="empty-icon">
+                      <svg lucideUserSearch></svg>
+                    </div>
+
+                    <h3>No missing person cases</h3>
+
+                    <p>Cases registered in e-TAMBUA will appear here.</p>
+                  </div>
+                </td>
+              </tr>
+            }
+          }
+        </tbody>
+      </table>
+      @if (loaded && pageCount > 1) {
+        <div class="toolbar-actions" aria-label="Pagination">
+          <button
+            type="button"
+            class="filter-button"
+            (click)="pageIndex = pageIndex - 1"
+            [disabled]="pageIndex === 0"
+          >
+            Previous
+          </button>
+          <span
+            >Page {{ pageIndex + 1 }} of {{ pageCount }} ·
+            {{ filteredRecords.length }} records</span
+          >
+          <button
+            type="button"
+            class="filter-button"
+            (click)="pageIndex = pageIndex + 1"
+            [disabled]="pageIndex + 1 >= pageCount"
+          >
+            Next
+          </button>
+        </div>
+      }
+    </div>
+  </section>
+
+  @if (selectedRecord) {
+    <section class="cases-card">
+      <div class="cases-header">
+        <h2>{{ selectedRecord.fullName }}</h2>
+        <button type="button" class="filter-button" (click)="closeCaseDetails()">Close</button>
+      </div>
+      <p>{{ selectedRecord.category }} · {{ selectedRecord.status }}</p>
+      <p>
+        {{ selectedRecord.lastSeenLocation }} ·
+        {{ (selectedRecord.lastSeenDate | date: 'mediumDate') || '—' }}
+      </p>
+      <p>Reporting contact: {{ selectedRecord.reportingContact }}</p>
+      <p>Case officer: {{ selectedRecord.caseOfficerId || 'Not assigned' }}</p>
+    </section>
+  }
+</div>

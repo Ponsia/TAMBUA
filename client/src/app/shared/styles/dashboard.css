@@ -1,0 +1,13 @@
+/* Shared dashboard hierarchy and stat presentation. */
+.page-header h1, .page-header h2, .dashboard-header h1 { font-size: var(--font-title); font-weight: 700; line-height: 1.2; letter-spacing: -.035em; }
+.page-header p, .dashboard-header p { font-size: var(--font-body); line-height: 1.7; max-width: 70ch; }
+.section-heading h3, .panel-header h2, .panel-header h3, .card-header h2 { font-size: var(--font-section); font-weight: 600; }
+.summary-card, .stat-card { background: var(--surface); border: 1px solid var(--line); border-top: 3px solid var(--accent); border-radius: 14px; box-shadow: 0 4px 18px rgb(15 158 219 / 5%); }
+.summary-card .summary-icon, .stat-card .stat-icon { background: var(--accent-soft); color: var(--accent-ink); border-radius: 12px; width: 44px; height: 44px; }
+.summary-info strong, .summary-content strong, .summary-main strong, .stat-content strong { font-size: var(--font-stat); font-weight: 700; line-height: 1.2; font-variant-numeric: tabular-nums; color: var(--text); }
+.summary-info span, .summary-content span, .summary-main span, .stat-content span { font-size: var(--font-small); font-weight: 500; color: var(--muted); }
+.summary-card:hover, a.stat-card:hover { border-color: var(--accent); }
+@media (max-width: 680px) { .summary-grid, .stats-grid, .stats-grid.four { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+@media (max-width: 380px) { .summary-grid, .stats-grid, .stats-grid.four { grid-template-columns: 1fr; } }
+
+.summary-card .summary-link { color: var(--accent-ink); font-weight: 600; }

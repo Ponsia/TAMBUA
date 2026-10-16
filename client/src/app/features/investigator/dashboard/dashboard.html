@@ -1,0 +1,221 @@
+<div class="investigator-dashboard">
+  @if (loading) {
+    <p role="status">Loading dashboard...</p>
+  }
+  @for (error of errors; track error) {
+    <p role="alert">{{ error }}</p>
+  }
+
+  <header class="page-header">
+    <div>
+      <span class="eyebrow">INVESTIGATION</span>
+
+      <h1>Dashboard</h1>
+
+      <p>Monitor investigations, confirmed movements and identification activities.</p>
+    </div>
+  </header>
+
+  <section class="summary-grid">
+    <a
+      routerLink="/investigator/missing-persons"
+      [queryParams]="{ status: 'OPEN' }"
+      class="summary-card"
+    >
+      <div class="summary-icon open-icon">
+        <svg lucideFolderOpen></svg>
+      </div>
+
+      <div class="summary-content">
+        <span>Open Cases</span>
+        <strong>{{ caseStats?.open ?? '—' }}</strong>
+      </div>
+    </a>
+
+    <a
+      routerLink="/investigator/missing-persons"
+      [queryParams]="{ status: 'FOUND' }"
+      class="summary-card"
+    >
+      <div class="summary-icon found-icon">
+        <svg lucideCircleCheck></svg>
+      </div>
+
+      <div class="summary-content">
+        <span>Found</span>
+        <strong>{{ caseStats?.found ?? '—' }}</strong>
+      </div>
+    </a>
+
+    <a
+      routerLink="/investigator/missing-persons"
+      [queryParams]="{ status: 'CLOSED' }"
+      class="summary-card"
+    >
+      <div class="summary-icon closed-icon">
+        <svg lucideArchive></svg>
+      </div>
+
+      <div class="summary-content">
+        <span>Closed</span>
+        <strong>{{ caseStats?.closed ?? '—' }}</strong>
+      </div>
+    </a>
+
+    <a routerLink="/investigator/sightings" class="summary-card">
+      <div class="summary-icon movement-icon">
+        <svg lucideActivity></svg>
+      </div>
+
+      <div class="summary-content">
+        <span>Confirmed Sightings</span>
+        <strong>View by case</strong>
+      </div>
+    </a>
+  </section>
+
+  <section class="dashboard-grid">
+    <article class="dashboard-card">
+      <div class="card-header">
+        <div>
+          <span class="card-eyebrow">CASES</span>
+          <h2>Active Investigations</h2>
+        </div>
+
+        <a routerLink="/investigator/missing-persons" class="view-link">
+          View Cases
+          <svg lucideArrowRight></svg>
+        </a>
+      </div>
+
+      @if (casesLoaded) {
+        @for (record of activeCases; track record.id) {
+          <div class="activity-item">
+            <strong>{{ record.fullName }}</strong
+            ><span>{{ record.lastSeenLocation }}</span
+            ><a routerLink="/investigator/missing-persons" [queryParams]="{ status: 'OPEN' }"
+              >View case</a
+            >
+          </div>
+        } @empty {
+          <div class="empty-state">
+            <div class="empty-icon">
+              <svg lucideFolderOpen></svg>
+            </div>
+
+            <h3>No active investigations</h3>
+
+            <p>Open missing-person cases available for investigation will appear here.</p>
+          </div>
+        }
+      }
+    </article>
+
+    <article class="dashboard-card">
+      <div class="card-header">
+        <div>
+          <span class="card-eyebrow">MONITORING</span>
+          <h2>Camera Preview</h2>
+        </div>
+
+        <a routerLink="/investigator/camera-preview" class="view-link">
+          Open Cameras
+          <svg lucideArrowRight></svg>
+        </a>
+      </div>
+
+      <div class="camera-content">
+        <div class="camera-icon">
+          <svg lucideCctv></svg>
+        </div>
+
+        <h3>No camera selected</h3>
+
+        <p>Access available cameras to assist with ongoing investigations.</p>
+
+        <a routerLink="/investigator/camera-preview" class="secondary-button">
+          <svg lucideCamera></svg>
+          View Cameras
+        </a>
+      </div>
+    </article>
+
+    <article class="dashboard-card">
+      <div class="card-header">
+        <div>
+          <span class="card-eyebrow">MOVEMENT</span>
+          <h2>Recent Confirmed Movements</h2>
+        </div>
+
+        <a routerLink="/investigator/timeline" class="view-link">
+          View Timeline
+          <svg lucideArrowRight></svg>
+        </a>
+      </div>
+
+      <div class="empty-state compact">
+        <div class="empty-icon">
+          <svg lucideActivity></svg>
+        </div>
+
+        <h3>Select a person to view movements</h3>
+
+        <p>Open the timeline and select a missing person or watchlist subject.</p>
+      </div>
+    </article>
+
+    <article class="dashboard-card">
+      <div class="card-header">
+        <div>
+          <span class="card-eyebrow">IDENTIFICATION</span>
+          <h2>Face Search</h2>
+        </div>
+      </div>
+
+      <div class="face-search-content">
+        <div class="search-icon">
+          <svg lucideUserSearch></svg>
+        </div>
+
+        <h3>Identify a person using a photograph</h3>
+
+        <p>Provide a hosted photo URL to search for a possible matching subject.</p>
+
+        <a routerLink="/investigator/face-search" class="primary-button">
+          <svg lucideSearch></svg>
+          Open Face Search
+        </a>
+      </div>
+    </article>
+  </section>
+
+  <section class="activity-card">
+    <div class="card-header">
+      <div>
+        <span class="card-eyebrow">RECENT ACTIVITY</span>
+        <h2>Investigation Activity</h2>
+      </div>
+    </div>
+
+    @if (casesLoaded) {
+      @for (record of recentCases; track record.id) {
+        <div class="activity-item">
+          <strong>{{ record.fullName }}</strong
+          ><span>Registered {{ record.createdAt | date: 'medium' }} · {{ record.status }}</span>
+        </div>
+      } @empty {
+        <div class="activity-empty">
+          <div class="activity-icon">
+            <svg lucideClock3></svg>
+          </div>
+
+          <div>
+            <h3>No recent investigation activity</h3>
+
+            <p>Recently registered cases will appear here.</p>
+          </div>
+        </div>
+      }
+    }
+  </section>
+</div>

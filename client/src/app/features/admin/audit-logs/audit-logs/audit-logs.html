@@ -1,0 +1,200 @@
+<div class="audit-page">
+  @if (loading) {
+    <p role="status">Loading records...</p>
+  }
+  @if (errorMessage) {
+    <p role="alert">
+      {{ errorMessage }}
+      <button type="button" (click)="reload()" [disabled]="loading || saving">Retry</button>
+    </p>
+  }
+  @if (relatedError) {
+    <p role="status">{{ relatedError }}</p>
+  }
+
+  <header class="page-header">
+    <div>
+      <h1>Audit Logs</h1>
+
+      <p>Review administrative and system activity recorded in e-TAMBUA.</p>
+    </div>
+  </header>
+
+  <section class="summary-grid">
+    <article class="summary-card">
+      <div class="summary-icon">
+        <svg lucideActivity></svg>
+      </div>
+
+      <div class="summary-info">
+        <span>Total Logs</span>
+        <strong>{{ loaded ? count() : '—' }}</strong>
+        <small>All recorded system activity</small>
+      </div>
+    </article>
+
+    <article class="summary-card">
+      <div class="summary-icon">
+        <svg lucideUserRound></svg>
+      </div>
+
+      <div class="summary-info">
+        <span>Actors</span>
+        <strong>{{ loaded ? uniqueCount('actorId') : '—' }}</strong>
+        <small>Users recorded in activity logs</small>
+      </div>
+    </article>
+
+    <article class="summary-card">
+      <div class="summary-icon">
+        <svg lucideShieldCheck></svg>
+      </div>
+
+      <div class="summary-info">
+        <span>Entities</span>
+        <strong>{{ loaded ? uniqueCount('entity') : '—' }}</strong>
+        <small>System resources affected</small>
+      </div>
+    </article>
+
+    <article class="summary-card">
+      <div class="summary-icon">
+        <svg lucideClock3></svg>
+      </div>
+
+      <div class="summary-info">
+        <span>Recent Activity</span>
+        <strong>{{ loaded ? recentCount() : '—' }}</strong>
+        <small>Actions in the past 24 hours</small>
+      </div>
+    </article>
+  </section>
+
+  <section class="records-card">
+    <div class="records-header">
+      <div>
+        <h2>System Activity</h2>
+
+        <p>Browse recorded actions performed within the e-TAMBUA system.</p>
+      </div>
+
+      <span class="record-count"> {{ filteredRecords.length }} logs </span>
+    </div>
+
+    <div class="records-toolbar">
+      <div class="search-field">
+        <svg lucideSearch></svg>
+
+        <input
+          [(ngModel)]="searchTerm"
+          (ngModelChange)="filtersChanged()"
+          type="text"
+          placeholder="Search displayed audit logs..."
+        />
+      </div>
+
+      <div class="toolbar-actions">
+        <input
+          [(ngModel)]="selectedDate"
+          (ngModelChange)="filtersChanged()"
+          type="date"
+          aria-label="Filter audit logs by date"
+        />
+
+        <button type="button" class="filter-button" (click)="filtersChanged()">
+          <svg lucideSlidersHorizontal></svg>
+
+          Filters
+        </button>
+      </div>
+    </div>
+
+    <div class="table-container">
+      <table>
+        <thead>
+          <tr>
+            <th>DATE & TIME</th>
+            <th>ACTOR</th>
+            <th>ACTION</th>
+            <th>ENTITY</th>
+            <th>ENTITY ID</th>
+            <th>IP ADDRESS</th>
+          </tr>
+        </thead>
+
+        <tbody>
+          @for (record of displayedRecords; track record.id) {
+            <tr>
+              <td>{{ record.createdAt | date: 'medium' }}</td>
+              <td>{{ record.actorId || 'System' }}</td>
+              <td>
+                <button type="button" class="view-button" (click)="viewRecord(record)">
+                  {{ record.action }}
+                </button>
+              </td>
+              <td>{{ record.entity }}</td>
+              <td>{{ record.entityId }}</td>
+              <td>{{ record.ip || '—' }}</td>
+            </tr>
+          } @empty {
+            @if (loaded && !loading && !errorMessage) {
+              <tr class="empty-row">
+                <td colspan="6">
+                  <div class="empty-state">
+                    <div class="empty-icon">
+                      <svg lucideShieldCheck></svg>
+                    </div>
+
+                    <h3>No audit logs</h3>
+
+                    <p>System activity recorded by e-TAMBUA will appear here.</p>
+                  </div>
+                </td>
+              </tr>
+            }
+          }
+        </tbody>
+      </table>
+      @if (loaded && pageCount > 1) {
+        <div class="toolbar-actions" aria-label="Pagination">
+          <button
+            type="button"
+            class="filter-button"
+            (click)="pageIndex = pageIndex - 1"
+            [disabled]="pageIndex === 0"
+          >
+            Previous
+          </button>
+          <span
+            >Page {{ pageIndex + 1 }} of {{ pageCount }} ·
+            {{ filteredRecords.length }} records</span
+          >
+          <button
+            type="button"
+            class="filter-button"
+            (click)="pageIndex = pageIndex + 1"
+            [disabled]="pageIndex + 1 >= pageCount"
+          >
+            Next
+          </button>
+        </div>
+      }
+    </div>
+  </section>
+
+  @if (selectedRecord) {
+    <section class="records-card">
+      <div class="records-header">
+        <h2>Audit Details</h2>
+        <button type="button" (click)="closeCaseDetails()">Close</button>
+      </div>
+      <p>
+        {{ selectedRecord.action }} · {{ selectedRecord.entity }} · {{ selectedRecord.entityId }}
+      </p>
+      <h3>Before</h3>
+      <pre>{{ selectedRecord.oldPayload | json }}</pre>
+      <h3>After</h3>
+      <pre>{{ selectedRecord.newPayload | json }}</pre>
+    </section>
+  }
+</div>

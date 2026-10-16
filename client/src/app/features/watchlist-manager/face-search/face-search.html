@@ -1,0 +1,264 @@
+<div class="face-search-page">
+  <header class="page-header">
+    <div>
+      <span class="eyebrow"> IDENTIFICATION </span>
+
+      <h1>Face Search</h1>
+
+      <p>Upload a photograph to search for a possible match within e-TAMBUA.</p>
+    </div>
+  </header>
+  @if (errorMessage) {
+    <p role="alert">{{ errorMessage }}</p>
+  }
+
+  <section class="search-layout">
+    <article class="search-card upload-card">
+      <div class="card-header">
+        <div class="header-icon">
+          <svg lucideScanFace></svg>
+        </div>
+
+        <div>
+          <h2>Upload Photograph</h2>
+
+          <p>Select a clear image containing the person's face.</p>
+        </div>
+      </div>
+
+      <div class="upload-content">
+        <label for="facePhoto" class="upload-area" [class.has-image]="imagePreview">
+          @if (!imagePreview) {
+            <div class="upload-placeholder">
+              <div class="upload-icon">
+                <svg lucideImage></svg>
+              </div>
+
+              <h3>Upload a photograph</h3>
+
+              <p>Click to choose an image.</p>
+
+              <span> PNG, JPG or WebP · up to 8 MB </span>
+            </div>
+          }
+
+          @if (imagePreview) {
+            <div class="image-preview">
+              <img [src]="imagePreview" alt="Selected face search photograph" />
+
+              <div class="preview-overlay">
+                <svg lucideScanFace></svg>
+              </div>
+            </div>
+          }
+
+          <input
+            id="facePhoto"
+            type="file"
+            [disabled]="isSearching"
+            accept="image/png,image/jpeg,image/webp"
+            (change)="onFileSelected($event)"
+          />
+        </label>
+
+        @if (selectedFile) {
+          <div class="selected-file">
+            <div class="file-information">
+              <div class="file-icon">
+                <svg lucideImage></svg>
+              </div>
+
+              <div>
+                <strong>
+                  {{ selectedFile.name }}
+                </strong>
+
+                <span>{{ uploadedPhotoUrl ? 'Uploaded' : 'Ready to search' }}</span>
+              </div>
+            </div>
+
+            <button
+              type="button"
+              class="remove-file"
+              (click)="clearImage()"
+              aria-label="Remove selected image"
+            >
+              <svg lucideX></svg>
+            </button>
+          </div>
+        }
+
+        <label for="facePhoto" class="choose-button">
+          <svg lucideUpload></svg>
+
+          <span>
+            {{ selectedFile ? 'Change Photograph' : 'Choose Photograph' }}
+          </span>
+        </label>
+
+        <button
+          type="button"
+          class="search-button"
+          [disabled]="!selectedFile || isSearching"
+          (click)="searchPhoto()"
+        >
+          @if (!isSearching) {
+            <svg lucideSearch></svg>
+
+            <span> Search Photo </span>
+          }
+
+          @if (isSearching) {
+            <svg lucideRefreshCw class="spinner"></svg>
+
+            <span> Searching... </span>
+          }
+        </button>
+
+        <div class="search-information">
+          <svg lucideInfo></svg>
+
+          <p>Use a clear photograph where the face is visible and not heavily obstructed.</p>
+        </div>
+      </div>
+    </article>
+
+    <article class="search-card results-card">
+      <div class="card-header">
+        <div class="header-icon result-header-icon">
+          <svg lucideSearch></svg>
+        </div>
+
+        <div>
+          <h2>Search Result</h2>
+
+          <p>Identification results will appear here.</p>
+        </div>
+      </div>
+
+      <div class="results-content">
+        @if (searchResult) {
+          <p>Search log: {{ searchResult.searchLogId }}</p>
+        }
+
+        @if (!searchPerformed) {
+          <div class="result-empty-state">
+            <div class="result-empty-icon">
+              <svg lucideUserSearch></svg>
+            </div>
+
+            <h3>No search performed</h3>
+
+            <p>Upload a photograph and select Search Photo to begin identification.</p>
+          </div>
+        }
+
+        @if (searchPerformed && !matchFound) {
+          <div class="no-match-result">
+            <div class="result-status-icon no-match-icon">
+              <svg lucideCircleX></svg>
+            </div>
+
+            <span class="result-label"> SEARCH COMPLETE </span>
+
+            <h3>No Match Found</h3>
+
+            <p>No matching person was returned for the uploaded photograph.</p>
+
+            <div class="result-details">
+              <div>
+                <span> Outcome </span>
+
+                <strong> NO_MATCH </strong>
+              </div>
+            </div>
+          </div>
+        }
+
+        @if (searchPerformed && matchFound) {
+          <div class="match-result">
+            <div class="result-status-icon match-icon">
+              <svg lucideShieldCheck></svg>
+            </div>
+
+            <span class="result-label"> POTENTIAL MATCH </span>
+
+            <h3>Match Found</h3>
+
+            <p>e-TAMBUA returned a possible match for the uploaded photograph.</p>
+
+            @if (matchedSubject?.photoUrl) {
+              <div class="image-preview">
+                <img [src]="matchedSubject?.photoUrl" alt="Enrolled photograph of the matched subject" />
+              </div>
+            }
+
+            <div class="match-information">
+              <div class="match-row">
+                <span> Name </span>
+
+                <strong>{{ matchedSubject?.fullName || '—' }}</strong>
+              </div>
+
+              <div class="match-row">
+                <span> Record </span>
+
+                <strong>{{ subjectTypeLabel }}</strong>
+              </div>
+
+              <div class="match-row">
+                <span> Status </span>
+
+                <strong>{{ matchedSubject?.status || '—' }}</strong>
+              </div>
+
+              <div class="match-row">
+                <span> Confidence </span>
+
+                <strong>{{ confidencePercentage(searchResult?.confidenceScore) }}</strong>
+              </div>
+            </div>
+
+            <div class="match-warning">
+              <svg lucideInfo></svg>
+
+              <p>
+                A potential face match should be reviewed before any operational decision is made.
+              </p>
+            </div>
+          </div>
+        }
+      </div>
+    </article>
+  </section>
+
+  <section class="guidance-card">
+    <div class="guidance-icon">
+      <svg lucideInfo></svg>
+    </div>
+
+    <div>
+      <h2>Photo Search Guidance</h2>
+
+      <div class="guidance-grid">
+        <div>
+          <strong> Clear face </strong>
+
+          <span> Use an image where the face is clearly visible. </span>
+        </div>
+
+        <div>
+          <strong> Good lighting </strong>
+
+          <span> Avoid photographs that are too dark or overexposed. </span>
+        </div>
+
+        <div>
+          <strong> Front-facing </strong>
+
+          <span> A front-facing photograph generally provides clearer facial information. </span>
+        </div>
+      </div>
+    </div>
+  </section>
+</div>

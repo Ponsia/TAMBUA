@@ -1,0 +1,172 @@
+<div class="reports-page">
+  @if (errorMessage) {
+    <p role="alert">{{ errorMessage }}</p>
+  }
+  @if (downloading) {
+    <p role="status">Generating report...</p>
+  }
+
+  <header class="page-header">
+    <div>
+      <h1>Reports</h1>
+
+      <p>Generate and export operational reports from the e-TAMBUA system.</p>
+    </div>
+  </header>
+
+  <section class="report-grid">
+    <article class="report-card">
+      <div class="report-icon">
+        <svg lucideShieldCheck></svg>
+      </div>
+
+      <div class="report-content">
+        <h2>Audit Logs</h2>
+
+        <p>Export system activity and audit records for administrative review.</p>
+
+        <span class="report-code"> audit_logs </span>
+      </div>
+    </article>
+
+    <article class="report-card">
+      <div class="report-icon">
+        <svg lucideActivity></svg>
+      </div>
+
+      <div class="report-content">
+        <h2>Alert Statistics</h2>
+
+        <p>Export statistical information about watchlist detection alerts.</p>
+
+        <span class="report-code"> alert_stats </span>
+      </div>
+    </article>
+
+    <article class="report-card">
+      <div class="report-icon">
+        <svg lucideFolderOpen></svg>
+      </div>
+
+      <div class="report-content">
+        <h2>Case Statistics</h2>
+
+        <p>Export statistics for missing-person cases and their current status.</p>
+
+        <span class="report-code"> case_stats </span>
+      </div>
+    </article>
+  </section>
+
+  <section class="generator-card">
+    <div class="card-header">
+      <div>
+        <h2>Generate Report</h2>
+
+        <p>Select a report type, date range and export format.</p>
+      </div>
+
+      <div class="header-icon">
+        <svg lucideFileText></svg>
+      </div>
+    </div>
+
+    <div class="generator-body">
+      <div class="form-group">
+        <label for="reportType"> Report Type </label>
+
+        <select id="reportType" [(ngModel)]="reportType" [disabled]="downloading">
+          <option value="">Select report type</option>
+
+          <option value="audit_logs">Audit Logs</option>
+
+          <option value="alert_stats">Alert Statistics</option>
+
+          <option value="case_stats">Case Statistics</option>
+        </select>
+      </div>
+
+      <div class="date-section">
+        <div class="section-label">
+          <svg lucideCalendarDays></svg>
+
+          <span>Date Range</span>
+        </div>
+
+        <div class="date-grid">
+          <div class="form-group">
+            <label for="dateFrom"> From </label>
+
+            <input id="dateFrom" [(ngModel)]="dateFrom" [disabled]="downloading" type="date" />
+          </div>
+
+          <div class="form-group">
+            <label for="dateTo"> To </label>
+
+            <input id="dateTo" [(ngModel)]="dateTo" [disabled]="downloading" type="date" />
+          </div>
+        </div>
+
+        <p class="date-hint">
+          Date filters are optional. Leave them empty to export the available report without a date
+          range.
+        </p>
+      </div>
+
+      <div class="format-section">
+        <span class="format-label"> Export Format </span>
+
+        <div class="format-options">
+          <button
+            type="button"
+            class="format-card"
+            (click)="format = 'csv'"
+            [attr.aria-pressed]="format === 'csv'"
+            [disabled]="downloading"
+          >
+            <div class="format-icon">
+              <svg lucideFileSpreadsheet></svg>
+            </div>
+
+            <div>
+              <strong>CSV</strong>
+
+              <span> Spreadsheet-compatible export </span>
+            </div>
+          </button>
+
+          <button
+            type="button"
+            class="format-card"
+            (click)="format = 'pdf'"
+            [attr.aria-pressed]="format === 'pdf'"
+            [disabled]="downloading"
+          >
+            <div class="format-icon">
+              <svg lucideFileDown></svg>
+            </div>
+
+            <div>
+              <strong>PDF</strong>
+
+              <span> Printable document export </span>
+            </div>
+          </button>
+        </div>
+      </div>
+
+      <div class="generate-action">
+        <button
+          type="button"
+          class="generate-button"
+          (click)="generateReport()"
+          [disabled]="downloading || !reportType"
+        >
+          <svg lucideFileDown></svg>
+
+          Generate Report
+        </button>
+      </div>
+    </div>
+  </section>
+</div>

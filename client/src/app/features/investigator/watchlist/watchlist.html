@@ -1,0 +1,265 @@
+<div class="watchlist-page">
+  @if (loading) {
+    <p role="status">Loading records...</p>
+  }
+  @if (errorMessage) {
+    <p role="alert">
+      {{ errorMessage }}
+      <button type="button" (click)="reload()" [disabled]="loading || saving">Retry</button>
+    </p>
+  }
+  @if (relatedError) {
+    <p role="status">{{ relatedError }}</p>
+  }
+
+  <header class="page-header">
+    <div>
+      <span class="eyebrow"> INVESTIGATION </span>
+
+      <h1>Watchlist</h1>
+
+      <p>View watchlist records available for investigative reference.</p>
+    </div>
+  </header>
+
+  <section class="summary-grid">
+    <div class="summary-card">
+      <span>Total Entries</span>
+      <strong>{{ loaded ? count() : '—' }}</strong>
+    </div>
+
+    <div class="summary-card active-card">
+      <span>Active</span>
+      <strong>{{ loaded ? count('ACTIVE') : '—' }}</strong>
+    </div>
+
+    <div class="summary-card high-card">
+      <span>High Risk</span>
+      <strong>{{ loaded ? riskCount() : '—' }}</strong>
+    </div>
+
+    <div class="summary-card removed-card">
+      <span>Removed</span>
+      <strong>{{ loaded ? count('REMOVED') : '—' }}</strong>
+    </div>
+  </section>
+
+  <section class="records-card">
+    <div class="records-header">
+      <div>
+        <span class="section-label"> WATCHLIST RECORDS </span>
+
+        <h2>Persons of Interest</h2>
+      </div>
+    </div>
+
+    <div class="filters">
+      <div class="search-box">
+        <svg lucideSearch></svg>
+
+        <input
+          type="text"
+          [(ngModel)]="searchTerm"
+          (ngModelChange)="filtersChanged()"
+          placeholder="Search watchlist person..."
+        />
+      </div>
+
+      <div class="filter-box">
+        <select (ngModelChange)="filtersChanged()" [(ngModel)]="selectedStatus">
+          <option value="ALL">All Statuses</option>
+
+          <option value="ACTIVE">Active</option>
+
+          <option value="REMOVED">Removed</option>
+        </select>
+      </div>
+
+      <div class="filter-box">
+        <select (ngModelChange)="filtersChanged()" [(ngModel)]="selectedRisk">
+          <option value="ALL">All Risk Levels</option>
+
+          <option value="HIGH">High</option>
+
+          <option value="MEDIUM">Medium</option>
+
+          <option value="LOW">Low</option>
+        </select>
+      </div>
+    </div>
+
+    <div class="table-wrapper">
+      <table>
+        <thead>
+          <tr>
+            <th>PERSON</th>
+            <th>REASON</th>
+            <th>RISK LEVEL</th>
+            <th>STATUS</th>
+            <th>DATE ADDED</th>
+            <th>ACTION</th>
+          </tr>
+        </thead>
+
+        <tbody>
+          @for (record of displayedRecords; track record.id) {
+            <tr>
+              <td>{{ record.fullName }}</td>
+              <td>{{ record.reason }}</td>
+              <td>{{ record.riskLevel }}</td>
+              <td>{{ record.status }}</td>
+              <td>{{ record.createdAt | date: 'medium' }}</td>
+              <td>
+                <button type="button" class="view-button" (click)="viewRecord(record)">View</button>
+                @if (canManage) {
+                  <button
+                    type="button"
+                    class="view-button"
+                    (click)="openForm(record)"
+                    [disabled]="saving"
+                  >
+                    Edit
+                  </button>
+                }
+                @if (canManage && record.status !== 'REMOVED') {
+                  <button
+                    type="button"
+                    class="view-button"
+                    (click)="changeStatus(record, 'REMOVED')"
+                    [disabled]="saving"
+                  >
+                    Remove
+                  </button>
+                }
+              </td>
+            </tr>
+          }
+        </tbody>
+      </table>
+      @if (loaded && pageCount > 1) {
+        <div class="toolbar-actions" aria-label="Pagination">
+          <button
+            type="button"
+            class="filter-button"
+            (click)="pageIndex = pageIndex - 1"
+            [disabled]="pageIndex === 0"
+          >
+            Previous
+          </button>
+          <span
+            >Page {{ pageIndex + 1 }} of {{ pageCount }} ·
+            {{ filteredRecords.length }} records</span
+          >
+          <button
+            type="button"
+            class="filter-button"
+            (click)="pageIndex = pageIndex + 1"
+            [disabled]="pageIndex + 1 >= pageCount"
+          >
+            Next
+          </button>
+        </div>
+      }
+
+      @if (loaded && !loading && !errorMessage && !filteredRecords.length) {
+        <div class="empty-state">
+          <div class="empty-icon">
+            <svg lucideShieldAlert></svg>
+          </div>
+
+          <h3>No watchlist records</h3>
+
+          <p>Watchlist persons available for investigation will appear here.</p>
+        </div>
+      }
+    </div>
+  </section>
+
+  @if (selectedRecord) {
+    <div class="modal-backdrop" (click)="closeCaseDetails()">
+      <div class="details-modal" (click)="$event.stopPropagation()">
+        <div class="modal-header">
+          <div>
+            <span class="section-label"> WATCHLIST DETAILS </span>
+
+            <h2>
+              {{ selectedRecord.fullName }}
+            </h2>
+          </div>
+
+          <button type="button" class="close-button" (click)="closeCaseDetails()">
+            <svg lucideX></svg>
+          </button>
+        </div>
+
+        <div class="modal-body">
+          <div class="person-header">
+            <div class="person-avatar">
+              <svg lucideUserRound></svg>
+            </div>
+
+            <div>
+              <h3>
+                {{ selectedRecord.fullName }}
+              </h3>
+
+              <div class="badges">
+                <span
+                  class="risk-badge"
+                  [class.risk-high]="selectedRecord.riskLevel === 'HIGH'"
+                  [class.risk-medium]="selectedRecord.riskLevel === 'MEDIUM'"
+                  [class.risk-low]="selectedRecord.riskLevel === 'LOW'"
+                >
+                  {{ selectedRecord.riskLevel }} RISK
+                </span>
+
+                <span
+                  class="status-badge"
+                  [class.status-active]="selectedRecord.status === 'ACTIVE'"
+                  [class.status-removed]="selectedRecord.status === 'REMOVED'"
+                >
+                  {{ selectedRecord.status }}
+                </span>
+              </div>
+            </div>
+          </div>
+
+          <div class="detail-section">
+            <span class="detail-label"> Reason </span>
+
+            <p>
+              {{ selectedRecord.reason }}
+            </p>
+          </div>
+
+          <div class="details-grid">
+            <div class="detail-item">
+              <span> Added By </span>
+
+              <strong>
+                {{ selectedRecord.addedById }}
+              </strong>
+            </div>
+
+            <div class="detail-item">
+              <span> Date Added </span>
+
+              <strong>
+                <svg lucideCalendarDays></svg>
+                {{ selectedRecord.createdAt }}
+              </strong>
+            </div>
+          </div>
+        </div>
+
+        <div class="modal-footer">
+          <div class="read-only-notice">
+            <svg lucideEye></svg>
+
+            <span> This record is available for investigation purposes only. </span>
+          </div>
+        </div>
+      </div>
+    </div>
+  }
+</div>

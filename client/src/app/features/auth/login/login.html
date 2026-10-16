@@ -1,0 +1,282 @@
+<a class="skip-link" href="#sign-in">Skip to sign in</a>
+
+<div class="login-page">
+
+  <header class="login-topbar">
+    <a routerLink="/" class="wordmark" aria-label="e-TAMBUA home">
+      <app-brand-logo />
+    </a>
+
+    <div class="topbar-actions">
+      <a routerLink="/" class="back-link">
+        <svg lucideArrowLeft></svg>
+        Back to home
+      </a>
+
+      <app-theme-toggle />
+    </div>
+  </header>
+
+  <main class="login-hero">
+
+    <div class="hero-shade"></div>
+
+    <section class="hero-copy" aria-labelledby="login-purpose">
+
+      <span class="brand-eyebrow">
+        A SHARED PURPOSE. A SECURE WORKSPACE.
+      </span>
+
+      <h1 id="login-purpose">
+        Good work starts<br />
+        with a clearer<br />
+        <em>picture.</em>
+      </h1>
+
+      <p>
+        Connect the details. Review the evidence.
+        Keep the person at the heart of the investigation.
+      </p>
+
+      <div class="purpose-note">
+        <svg lucideUsers></svg>
+
+        <span>
+          Different roles.
+          One shared purpose.
+        </span>
+      </div>
+
+    </section>
+
+    <section
+      id="sign-in"
+      tabindex="-1"
+      class="login-card"
+      aria-labelledby="sign-in-title"
+    >
+
+      <div class="login-container">
+
+        <span class="form-eyebrow">
+          <span></span>
+          YOUR e-TAMBUA WORKSPACE
+        </span>
+
+        <div class="login-header">
+          <span class="greeting">
+            {{ greeting }}
+          </span>
+
+          <h2 id="sign-in-title">
+            Welcome back.
+          </h2>
+
+          <p>
+            Your next step starts here.
+            Sign in to continue.
+          </p>
+        </div>
+
+        @if (errorMessage) {
+          <div class="error-message" role="alert">
+            <svg lucideCircleAlert></svg>
+            <span>{{ errorMessage }}</span>
+          </div>
+        }
+
+        <form
+          [formGroup]="loginForm"
+          (ngSubmit)="login()"
+          [attr.aria-busy]="loading"
+          novalidate
+        >
+
+          <fieldset [disabled]="loading">
+
+            <div class="form-group">
+
+              <label for="email">
+                Email address
+              </label>
+
+              <div
+                class="input-wrapper"
+                [class.input-error]="email?.invalid && email?.touched"
+              >
+
+                <svg lucideMail></svg>
+
+                <input
+                  id="email"
+                  type="email"
+                  formControlName="email"
+                  placeholder="you@organization.org"
+                  autocomplete="username"
+                  autocapitalize="none"
+                  spellcheck="false"
+                  [attr.aria-invalid]="email?.invalid && email?.touched"
+                  aria-describedby="email-error"
+                />
+
+              </div>
+
+              <span
+                id="email-error"
+                class="validation-message"
+                aria-live="polite"
+              >
+                @if (email?.touched && email?.hasError('required')) {
+                  Enter your email address.
+                } @else if (email?.touched && email?.hasError('email')) {
+                  Enter a valid email address.
+                }
+              </span>
+
+            </div>
+
+            <div class="form-group">
+
+              <label for="password">
+                Password
+              </label>
+
+              <div
+                class="input-wrapper"
+                [class.input-error]="password?.invalid && password?.touched"
+              >
+
+                <svg lucideLockKeyhole></svg>
+
+                <input
+                  id="password"
+                  [type]="showPassword ? 'text' : 'password'"
+                  formControlName="password"
+                  placeholder="Enter your password"
+                  autocomplete="current-password"
+                  (keydown)="checkCapsLock($event)"
+                  (keyup)="checkCapsLock($event)"
+                  (blur)="capsLock = false"
+                  [attr.aria-invalid]="password?.invalid && password?.touched"
+                  aria-describedby="password-error caps-warning"
+                />
+
+                <button
+                  type="button"
+                  class="password-toggle"
+                  (click)="togglePassword()"
+                  [attr.aria-label]="showPassword ? 'Hide password' : 'Show password'"
+                  [attr.aria-pressed]="showPassword"
+                  aria-controls="password"
+                >
+                  @if (showPassword) {
+                    <svg lucideEyeOff></svg>
+                  } @else {
+                    <svg lucideEye></svg>
+                  }
+                </button>
+
+              </div>
+
+              <span
+                id="password-error"
+                class="validation-message"
+                aria-live="polite"
+              >
+                @if (password?.invalid && password?.touched) {
+                  Enter your password.
+                }
+              </span>
+
+              <span
+                id="caps-warning"
+                class="caps-warning"
+                role="status"
+              >
+                @if (capsLock) {
+                  Caps Lock is on.
+                }
+              </span>
+
+            </div>
+
+            <button
+              class="login-button"
+              type="submit"
+              [disabled]="loading"
+            >
+
+              @if (loading) {
+                <span class="spinner" aria-hidden="true"></span>
+                <span role="status">
+                  Signing you in…
+                </span>
+              } @else {
+                <span>
+                  Sign in to your workspace
+                </span>
+
+                <svg lucideArrowUpRight></svg>
+              }
+
+            </button>
+
+          </fieldset>
+
+        </form>
+
+        <button
+          class="help-toggle"
+          type="button"
+          (click)="helpOpen = !helpOpen"
+          [attr.aria-expanded]="helpOpen"
+          aria-controls="access-help"
+        >
+          <span>
+            Need access or help signing in?
+          </span>
+
+          <span aria-hidden="true">
+            {{ helpOpen ? '−' : '+' }}
+          </span>
+        </button>
+
+        @if (helpOpen) {
+          <div
+            id="access-help"
+            class="access-help"
+          >
+            <strong>
+              Your administrator can help.
+            </strong>
+
+            <p>
+              Contact your organization’s system administrator
+              to request an account or reset your password.
+              Access is assigned according to your role.
+            </p>
+          </div>
+        }
+
+        <div class="login-footer">
+
+          <svg lucideShieldCheck></svg>
+
+          <p>
+            For authorized personnel only.
+            <br />
+            Your account opens the workspace assigned to your role.
+          </p>
+
+        </div>
+
+      </div>
+
+
+
+    </section>
+
+  </main>
+  <app-site-footer />
+
+</div>

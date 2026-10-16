@@ -1,0 +1,378 @@
+<div class="dashboard-page">
+  @if (loading) {
+    <p role="status">Loading dashboard...</p>
+  }
+  @for (error of errors; track error) {
+    <p role="alert">{{ error }}</p>
+  }
+
+  <header class="dashboard-header">
+    <div class="header-copy">
+      <span class="eyebrow"> WATCHLIST MANAGEMENT </span>
+
+      <h1>Dashboard</h1>
+
+      <p>
+        Review missing person cases, watchlist activity, alerts, sightings and identification
+        activity.
+      </p>
+    </div>
+
+    <div class="date-card">
+      <div class="date-icon">
+        <svg lucideCalendarDays></svg>
+      </div>
+
+      <div>
+        <span>Today</span>
+
+        <strong> Current activity </strong>
+      </div>
+    </div>
+  </header>
+
+  <section class="summary-grid">
+    <a
+      [routerLink]="['/watchlist-manager/missing-persons']"
+      [queryParams]="{ status: 'OPEN' }"
+      class="summary-card cases-card"
+    >
+      <div class="summary-main">
+        <div class="summary-icon">
+          <svg lucideUsers></svg>
+        </div>
+
+        <div class="summary-info">
+          <span> Open Cases </span>
+
+          <strong>{{ caseStats?.open ?? '—' }}</strong>
+        </div>
+
+        <svg lucideChevronRight class="summary-chevron"></svg>
+      </div>
+
+      <div class="summary-link">
+        <svg lucideArrowRight></svg>
+
+        <span> View open cases </span>
+      </div>
+    </a>
+
+    <a
+      [routerLink]="['/watchlist-manager/missing-persons']"
+      [queryParams]="{ status: 'FOUND' }"
+      class="summary-card found-card"
+    >
+      <div class="summary-main">
+        <div class="summary-icon">
+          <svg lucideUserCheck></svg>
+        </div>
+
+        <div class="summary-info">
+          <span> Found </span>
+
+          <strong>{{ caseStats?.found ?? '—' }}</strong>
+        </div>
+
+        <svg lucideChevronRight class="summary-chevron"></svg>
+      </div>
+
+      <div class="summary-link">
+        <svg lucideArrowRight></svg>
+
+        <span> View found cases </span>
+      </div>
+    </a>
+
+    <a
+      [routerLink]="['/watchlist-manager/missing-persons']"
+      [queryParams]="{ status: 'CLOSED' }"
+      class="summary-card closed-card"
+    >
+      <div class="summary-main">
+        <div class="summary-icon">
+          <svg lucideFileText></svg>
+        </div>
+
+        <div class="summary-info">
+          <span> Closed Cases </span>
+
+          <strong>{{ caseStats?.closed ?? '—' }}</strong>
+        </div>
+
+        <svg lucideChevronRight class="summary-chevron"></svg>
+      </div>
+
+      <div class="summary-link">
+        <svg lucideArrowRight></svg>
+
+        <span> View closed cases </span>
+      </div>
+    </a>
+
+    <a routerLink="/watchlist-manager/alerts" class="summary-card alert-card">
+      <div class="summary-main">
+        <div class="summary-icon">
+          <svg lucideShieldAlert></svg>
+        </div>
+
+        <div class="summary-info">
+          <span> Pending Alerts </span>
+
+          <strong>{{ alertStats?.pending ?? '—' }}</strong>
+        </div>
+
+        <svg lucideChevronRight class="summary-chevron"></svg>
+      </div>
+
+      <div class="summary-link">
+        <svg lucideArrowRight></svg>
+
+        <span> Review alerts </span>
+      </div>
+    </a>
+
+    <a routerLink="/watchlist-manager/sightings" class="summary-card sighting-card">
+      <div class="summary-main">
+        <div class="summary-icon">
+          <svg lucideCctv></svg>
+        </div>
+
+        <div class="summary-info">
+          <span> Pending Sightings </span>
+
+          <strong>{{ (sightingsLoaded ? pendingSightings : null) ?? '—' }}</strong>
+        </div>
+
+        <svg lucideChevronRight class="summary-chevron"></svg>
+      </div>
+
+      <div class="summary-link">
+        <svg lucideArrowRight></svg>
+
+        <span> Review sightings </span>
+      </div>
+    </a>
+  </section>
+
+  <section class="activity-grid">
+    <article class="dashboard-panel">
+      <div class="panel-header">
+        <h2>Recent Alerts</h2>
+
+        <a routerLink="/watchlist-manager/alerts" class="view-all"> View all </a>
+      </div>
+
+      @if (alertsLoaded) {
+        @for (record of recentAlerts; track record.id) {
+          <div class="activity-item">
+            <strong>{{ subjectName(record) }}</strong
+            ><span>{{ record.status }} · {{ record.detectedAt | date: 'medium' }}</span>
+          </div>
+        } @empty {
+          <div class="empty-state">
+            <div class="empty-icon">
+              <svg lucideShieldAlert></svg>
+            </div>
+
+            <h3>No recent alerts</h3>
+
+            <p>New watchlist detection alerts will appear here.</p>
+
+            <a routerLink="/watchlist-manager/alerts" class="empty-link">
+              View alerts
+
+              <svg lucideArrowRight></svg>
+            </a>
+          </div>
+        }
+      }
+    </article>
+
+    <article class="dashboard-panel">
+      <div class="panel-header">
+        <h2>Recent Sightings</h2>
+
+        <a routerLink="/watchlist-manager/sightings" class="view-all"> View all </a>
+      </div>
+
+      @if (sightingsLoaded) {
+        @for (record of recentSightings; track record.id) {
+          <div class="activity-item">
+            <strong>{{ subjectName(record) }}</strong
+            ><span>{{ record.status }} · {{ record.detectedAt | date: 'medium' }}</span>
+          </div>
+        } @empty {
+          <div class="empty-state">
+            <div class="empty-icon">
+              <svg lucideCctv></svg>
+            </div>
+
+            <h3>No recent sightings</h3>
+
+            <p>New missing person sightings will appear here.</p>
+
+            <a routerLink="/watchlist-manager/sightings" class="empty-link">
+              View sightings
+
+              <svg lucideArrowRight></svg>
+            </a>
+          </div>
+        }
+      }
+    </article>
+  </section>
+
+  <section class="lower-grid">
+    <article class="dashboard-panel timeline-panel">
+      <div class="panel-header">
+        <div>
+          <h2>Movement Timeline</h2>
+
+          <p>Confirmed movement activity.</p>
+        </div>
+
+        <a routerLink="/watchlist-manager/timeline" class="view-all"> View full timeline </a>
+      </div>
+
+      @if (alertsLoaded && sightingsLoaded) {
+        @for (
+          record of confirmedMovements.slice(0, 5);
+          track (record.watchlistPersonId ? 'alert' : 'sighting') + record.id
+        ) {
+          <div class="timeline-entry">
+            <strong>{{ subjectName(record) }}</strong
+            ><span>{{ record.detectedAt | date: 'medium' }}</span
+            ><a
+              routerLink="/watchlist-manager/timeline"
+              [queryParams]="{
+                subjectType: record.watchlistPersonId ? 'WATCHLIST' : 'MISSING_PERSON',
+                subjectId: record.watchlistPersonId || record.caseId,
+              }"
+              >View movement</a
+            >
+          </div>
+        } @empty {
+          <div class="empty-state timeline-empty">
+            <div class="empty-icon">
+              <svg lucideActivity></svg>
+            </div>
+
+            <h3>No movement activity</h3>
+
+            <p>Confirmed alerts and sightings will appear on the movement timeline.</p>
+          </div>
+        }
+      }
+    </article>
+
+    <article class="dashboard-panel face-panel">
+      <div class="panel-header">
+        <div class="face-heading">
+          <h2>Face Search</h2>
+
+          <svg lucideInfo></svg>
+        </div>
+
+        <a routerLink="/watchlist-manager/face-search" class="view-all"> Open full search </a>
+      </div>
+
+      <div class="face-search-content">
+        <div class="upload-section">
+          <label class="upload-box" for="dashboardPhoto">
+            @if (!imagePreview) {
+              <div class="upload-placeholder">
+                <div class="upload-icon">
+                  <svg lucideImage></svg>
+                </div>
+
+                <h3>Upload a photograph</h3>
+
+                <p>Click to choose an image.</p>
+
+                <span> PNG, JPG or WebP · up to 8 MB </span>
+              </div>
+            }
+
+            @if (imagePreview) {
+              <div class="image-preview">
+                <img [src]="imagePreview" alt="Selected search photograph" />
+              </div>
+            }
+
+            <input
+              id="dashboardPhoto"
+              type="file"
+              accept="image/png,image/jpeg,image/webp"
+              [disabled]="searching"
+              (change)="onFileSelected($event)"
+            />
+          </label>
+
+          <label for="dashboardPhoto" class="choose-image-button">
+            <svg lucideUpload></svg>
+
+            <span>
+              {{ selectedFile ? 'Change Image' : 'Choose Image' }}
+            </span>
+          </label>
+
+          @if (selectedFile) {
+            <div class="selected-file">
+              <span>
+                {{ selectedFile.name }}
+              </span>
+              <button type="button" (click)="clearImage()" [disabled]="searching">Remove</button>
+            </div>
+          }
+        </div>
+
+        <div class="search-options">
+          @if (previewError) {
+            <p role="alert">{{ previewError }}</p>
+          }
+          <h3>Search Result</h3>
+
+          @if (searchResult) {
+            @if (searchResult.outcome === 'MATCH_FOUND') {
+              <p>
+                <strong>{{ matchedSubject?.fullName || 'Matched subject' }}</strong>
+                · {{ searchResult.subjectType === 'WATCHLIST' ? 'Watchlist person' : 'Missing person' }}
+                · {{ confidencePercentage(searchResult.confidenceScore) }} confidence
+              </p>
+              <a
+                routerLink="/watchlist-manager/timeline"
+                [queryParams]="{ subjectType: searchResult.subjectType, subjectId: searchResult.subjectId }"
+                class="view-all"
+                >View movement</a
+              >
+            } @else {
+              <p>No matching watchlist person or open case was found.</p>
+            }
+          } @else {
+            <p>Choose a photograph and search every enrolled watchlist person and open case.</p>
+          }
+
+          <button
+            type="button"
+            class="search-button"
+            [disabled]="!selectedFile || searching"
+            (click)="search()"
+          >
+            <svg lucideSearch></svg>
+
+            <span>{{ searching ? 'Searching...' : 'Search Photo' }}</span>
+          </button>
+
+          <div class="search-note">
+            <svg lucideInfo></svg>
+
+            <p>
+              A possible match is an investigative lead and must be verified before any action.
+            </p>
+          </div>
+        </div>
+      </div>
+    </article>
+  </section>
+</div>

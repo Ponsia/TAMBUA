@@ -1,0 +1,30 @@
+:host { position: relative; display: block; }
+button { font: inherit; }
+.profile-trigger { display: flex; align-items: center; gap: 12px; color: var(--text); background: transparent; border: 1px solid transparent; border-radius: 12px; padding: 6px; text-align: left; min-height: 48px; }
+.profile-trigger:hover, .profile-trigger[aria-expanded=true] { background: var(--surface-soft); border-color: var(--line); }
+.avatar { display: grid; place-items: center; width: 42px; height: 42px; flex-shrink: 0; border-radius: 50%; background: var(--accent-soft); color: var(--accent-ink); font-size: 18px; font-weight: 700; overflow: hidden; border: 1px solid var(--line); }
+.profile-copy { display: grid; gap: 2px; }
+.profile-copy strong { font-size: var(--font-body); max-width: 180px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-weight: 600; }
+small, .profile-copy small { color: var(--muted); font-size: var(--font-caption); }
+.account-panel { position: absolute; right: 0; top: calc(100% + 12px); width: min(380px, calc(100vw - 32px)); max-height: min(740px, calc(100dvh - 110px)); overflow-y: auto; overscroll-behavior: contain; z-index: 100; border: 1px solid var(--line); border-radius: 18px; background: var(--surface); box-shadow: var(--shadow-emphasis); color: var(--text); }
+header { display: flex; justify-content: space-between; align-items: flex-start; padding: 20px; border-bottom: 1px solid var(--line); }
+header p { margin: 4px 0 0; color: var(--muted); font-size: var(--font-small); overflow-wrap: anywhere; }
+.close { border: 0; color: var(--text); background: var(--surface-soft); border-radius: 8px; min-width: 36px; height: 36px; font-size: 24px; }
+.account-actions { padding: 8px; }
+.account-actions button { display: grid; gap: 3px; text-align: left; width: 100%; padding: 14px; border: 0; border-radius: 10px; background: transparent; color: var(--text); font-weight: 600; }
+.account-actions button:hover { background: var(--accent-soft); }
+form, .password-panel { padding: 0 20px 20px; }
+h2 { font-size: 20px; font-weight: 600; margin: 6px 0 10px; }
+.note { font-size: var(--font-small); line-height: 1.6; color: var(--muted); }
+label { display: block; font-size: var(--font-small); font-weight: 600; margin: 16px 0 6px; }
+input:not([type=file]) { width: 100%; min-height: 44px; padding: 10px 12px; border-radius: 8px; border: 1px solid var(--control-border); background: var(--surface); color: var(--text); }
+input[readonly] { background: var(--surface-soft); }
+.primary, .secondary { min-height: 44px; padding: 10px 14px; border-radius: 9px; border: 1px solid var(--line); font-weight: 600; }
+.primary { background: var(--accent); color: var(--on-accent); width: 100%; margin-top: 20px; border-color: var(--accent); }
+.primary:hover:not(:disabled) { background: var(--accent-hover); }
+.secondary { background: var(--surface-soft); color: var(--text); }
+.back { min-height: 44px; padding: 8px 20px; background: transparent; border: 0; color: var(--accent-ink); text-align: left; }
+fieldset { border: 0; margin: 0; padding: 0; }
+fieldset:disabled { opacity: .65; }
+[role=status] { font-size: var(--font-small); color: var(--accent-ink); }
+@media(max-width: 680px) { .profile-copy { display: none; } .account-panel { position: fixed; left: 16px; right: 16px; top: 84px; width: auto; max-height: calc(100dvh - 100px); } }

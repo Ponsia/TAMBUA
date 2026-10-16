@@ -1,0 +1,303 @@
+<div class="timeline-page" [class.sightings-view]="sightingsOnly">
+  <header class="page-header">
+    <div>
+      <span class="eyebrow"> INVESTIGATION </span>
+
+      <h1>{{ sightingsOnly ? 'Confirmed Sightings' : 'Movement Timeline' }}</h1>
+
+      <p>
+        {{
+          sightingsOnly
+            ? 'Select a missing-person case to review sightings confirmed by a watchlist manager.'
+            : 'Review confirmed movement records captured across the camera network.'
+        }}
+      </p>
+    </div>
+  </header>
+  <div class="filters toolbar">
+    @if (!sightingsOnly) {
+      <label
+        >Subject type<select [(ngModel)]="subjectType" (ngModelChange)="subjectTypeChanged()">
+          <option value="MISSING_PERSON">Missing person</option>
+          <option value="WATCHLIST">Watchlist person</option>
+        </select></label
+      >
+    }
+    <label
+      >{{ sightingsOnly ? 'Missing-person case' : 'Subject'
+      }}<select
+        [disabled]="subjectsLoading"
+        [(ngModel)]="subjectId"
+        (ngModelChange)="loadTimeline()"
+      >
+        <option value="">Select a person</option>
+        @for (subject of subjects; track subject.id) {
+          <option [value]="subject.id">{{ subject.fullName }} · {{ subject.id }}</option>
+        }
+      </select></label
+    >
+    <button
+      type="button"
+      class="filter-button"
+      (click)="loadTimeline()"
+      [disabled]="loading || !subjectId"
+    >
+      Refresh
+    </button>
+  </div>
+  @if (subjectsLoading) {
+    <p role="status">Loading cases...</p>
+  }
+  @if (subjectsError) {
+    <p role="alert">{{ subjectsError }}</p>
+    <button type="button" class="filter-button" (click)="loadSubjects()">
+      Retry loading people
+    </button>
+  }
+  @if (loading) {
+    <p role="status">Loading movements...</p>
+  }
+  @if (errorMessage) {
+    <p role="alert">{{ errorMessage }}</p>
+  }
+  @if (sightingsOnly && !subjectsLoading && !subjectsError && !cases.length) {
+    <p role="status">No missing-person cases are available yet.</p>
+  }
+  @if (!subjectId && (!sightingsOnly || cases.length)) {
+    <p role="status">
+      {{
+        sightingsOnly
+          ? 'Choose a case above to view its confirmed sightings.'
+          : 'Select a person to view confirmed movements.'
+      }}
+    </p>
+  }
+
+  <section class="information-banner">
+    <div class="information-icon">
+      <svg lucideActivity></svg>
+    </div>
+
+    <div>
+      <strong> Confirmed movement records </strong>
+
+      <p>
+        {{
+          sightingsOnly
+            ? 'Only confirmed sightings are available here. Pending and rejected detections are reviewed in the watchlist manager workspace.'
+            : 'This timeline contains confirmed detections available for investigative tracking.'
+        }}
+      </p>
+    </div>
+  </section>
+
+  <section class="timeline-card">
+    <div class="card-header">
+      <div>
+        <span class="section-label"> MOVEMENT HISTORY </span>
+
+        <h2>{{ sightingsOnly ? 'Case Sightings' : 'Confirmed Movements' }}</h2>
+      </div>
+    </div>
+
+    <div class="filters">
+      <div class="search-box">
+        <svg lucideSearch></svg>
+
+        <input type="text" [(ngModel)]="searchTerm" placeholder="Search by camera..." />
+      </div>
+
+      @if (!sightingsOnly) {
+        <div class="source-filter">
+          <svg lucideScanFace></svg>
+
+          <select [(ngModel)]="selectedSource">
+            <option value="ALL">All Sources</option>
+
+            <option value="ALERT">Watchlist Alerts</option>
+
+            <option value="SIGHTING">Missing Person Sightings</option>
+          </select>
+        </div>
+      }
+    </div>
+
+    @for (entry of filteredEntries; track entry.source + entry.id) {
+      <article class="timeline-entry">
+        <div class="timeline-marker"><span></span></div>
+        <div class="entry-card">
+          <div class="entry-top">
+            <span class="entry-source">{{ entry.source }}</span
+            ><span class="entry-time">{{ entry.detectedAt | date: 'medium' }}</span>
+          </div>
+          <div class="entry-content">
+            <div class="entry-image">
+              <app-evidence
+                [snapshot]="entry.frameSnapshotUrl"
+                [clip]="entry.clipUrl"
+              ></app-evidence>
+            </div>
+            <div class="entry-details">
+              <h3>{{ entry.cameraName }}</h3>
+              <p>Confidence: {{ confidencePercentage(entry.confidenceScore) }}</p>
+              <button type="button" class="filter-button" (click)="viewEntry(entry)">
+                View evidence details
+              </button>
+            </div>
+          </div>
+        </div>
+      </article>
+    } @empty {
+      @if (loaded && !loading && !errorMessage) {
+        <div class="empty-state">
+          <div class="empty-icon">
+            <svg lucideActivity></svg>
+          </div>
+
+          <h3>
+            {{
+              entries.length
+                ? 'No records match your filters'
+                : sightingsOnly
+                  ? 'No confirmed sightings for this case'
+                  : 'No confirmed movements'
+            }}
+          </h3>
+
+          <p>
+            {{
+              entries.length
+                ? 'Try another camera name or clear the filters.'
+                : 'Confirmed records will appear here after a watchlist manager verifies a detection.'
+            }}
+          </p>
+        </div>
+      }
+    }
+  </section>
+
+  @if (selectedEntry) {
+    <div class="modal-backdrop" (click)="closeDetails()">
+      <div
+        class="details-modal"
+        role="dialog"
+        aria-modal="true"
+        aria-label="Confirmed detection details"
+        (keydown.escape)="closeDetails()"
+        (click)="$event.stopPropagation()"
+      >
+        <div class="modal-header">
+          <div>
+            <span class="section-label"> MOVEMENT DETAILS </span>
+
+            <h2>
+              {{ selectedEntry.cameraName }}
+            </h2>
+          </div>
+
+          <button
+            type="button"
+            class="close-button"
+            aria-label="Close evidence details"
+            (click)="closeDetails()"
+          >
+            <svg lucideX></svg>
+          </button>
+        </div>
+
+        <div class="modal-body">
+          <div class="evidence-container">
+            <app-evidence
+              [snapshot]="selectedEntry.frameSnapshotUrl"
+              [clip]="selectedEntry.clipUrl"
+            ></app-evidence>
+          </div>
+
+          <div class="details-grid">
+            <div class="detail-item">
+              <span> Source </span>
+
+              <strong>
+                {{ selectedEntry.source }}
+              </strong>
+            </div>
+
+            <div class="detail-item">
+              <span> Confidence </span>
+
+              <strong>
+                {{ confidencePercentage(selectedEntry.confidenceScore) }}
+              </strong>
+            </div>
+
+            <div class="detail-item">
+              <span> Camera </span>
+
+              <strong>
+                <svg lucideCamera></svg>
+                {{ selectedEntry.cameraName }}
+              </strong>
+            </div>
+
+            <div class="detail-item">
+              <span> Camera ID </span>
+
+              <strong>
+                {{ selectedEntry.cameraId }}
+              </strong>
+            </div>
+
+            <div class="detail-item">
+              <span> Detected At </span>
+
+              <strong>
+                <svg lucideClock3></svg>
+                {{ selectedEntry.detectedAt }}
+              </strong>
+            </div>
+
+            <div class="detail-item">
+              <span> Evidence </span>
+
+              <strong>
+                {{ selectedEntry.clipUrl ? 'Snapshot + Clip' : 'Snapshot' }}
+              </strong>
+            </div>
+          </div>
+
+          @if (selectedEntry.clipUrl) {
+            <div class="clip-section">
+              <div class="clip-heading">
+                <svg lucideVideo></svg>
+
+                <span> Detection Clip </span>
+              </div>
+
+              <div class="clip-placeholder">
+                <svg lucideVideo></svg>
+
+                <div>
+                  <strong> Video evidence available </strong>
+
+                  <p>
+                    Duration:
+                    {{ selectedEntry.clipDurationSeconds || 0 }}
+                    seconds
+                  </p>
+                </div>
+              </div>
+            </div>
+          }
+        </div>
+
+        <div class="modal-footer">
+          <div class="confirmed-notice">
+            <svg lucideActivity></svg>
+
+            <span> Confirmed movement record </span>
+          </div>
+        </div>
+      </div>
+    </div>
+  }
+</div>

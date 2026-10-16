@@ -1,0 +1,29 @@
+# Web service
+fastapi>=0.115,<0.120
+uvicorn[standard]>=0.30,<0.36
+pydantic>=2.7,<3
+
+# Imaging & math
+numpy>=2.0,<3
+opencv-python-headless>=4.9,<4.11
+pillow>=10.0,<12
+
+# Face detection / recognition (InsightFace buffalo_l on ONNX Runtime).
+# CPU runtime by default. On a CUDA machine, replace with `onnxruntime-gpu`
+# and set AI_DEVICE=cuda (see .env.example).
+insightface==0.7.3
+
+# Vector index
+qdrant-client>=1.10,<2
+
+# Service-to-service HTTP (Django registry, photo downloads, detection reports)
+requests>=2.31,<3
+
+# JWT verification for the browser-facing /ws/stream endpoint
+PyJWT>=2.8,<3
+
+# .env loading
+python-dotenv>=1.0,<2
+
+# Optional: OBS WebSocket camera discovery (DroidCam sources)
+obsws-python==1.7.0

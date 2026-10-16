@@ -1,0 +1,218 @@
+<section id="about" class="purpose section-space">
+  <div class="shell purpose-grid">
+    <div>
+      <span class="eyebrow">A PLATFORM WITH A PURPOSE</span>
+      <h2>Better connected.<br />Better prepared<br />to make a difference.</h2>
+    </div>
+    <div class="purpose-copy" appReveal="right">
+      <p class="lead">The search for answers shouldn’t be held back by scattered information.</p>
+      <p>
+        e-TAMBUA provides a shared place to manage missing-person cases, maintain watchlist records
+        and review potential sightings. It helps authorized teams see the context, follow confirmed
+        leads and keep their work coordinated.
+      </p>
+      <a href="#capabilities" class="text-link"
+        >Explore the platform <svg lucideArrowUpRight></svg
+      ></a>
+    </div>
+  </div>
+</section>
+<section id="capabilities" class="shell section-space capabilities">
+  <div class="section-heading" appReveal="up">
+    <div>
+      <span class="eyebrow">ONE CONNECTED WORKSPACE</span>
+      <h2>The right information.<br />For the next right step.</h2>
+    </div>
+    <p>From the first report to the final review, keep the details that matter within reach.</p>
+  </div>
+  <div class="feature-grid">
+    <article class="feature-card" appReveal="up">
+      <span class="feature-icon"><svg lucideUsers></svg></span
+      ><span class="feature-number">01 / CASES</span>
+      <h3>Missing-person<br />case management</h3>
+      <p>
+        Organize person details, last seen information and contacts. Track each case from open to
+        found and closed.
+      </p>
+      <a routerLink="/login">Access cases <svg lucideArrowUpRight></svg></a>
+    </article>
+    <article class="feature-card" appReveal="up">
+      <span class="feature-icon"><svg lucideShieldCheck></svg></span
+      ><span class="feature-number">02 / WATCHLIST</span>
+      <h3>Coordinated<br />watchlist management</h3>
+      <p>
+        Maintain monitored-person records with clear reasons, risk levels and an accountable review
+        process.
+      </p>
+      <a routerLink="/login">Access watchlist <svg lucideArrowUpRight></svg></a>
+    </article>
+    <article class="feature-card" appReveal="up">
+      <span class="feature-icon"><svg lucideCctv></svg></span
+      ><span class="feature-number">03 / EVIDENCE</span>
+      <h3>Detection alerts<br />with useful context</h3>
+      <p>
+        Bring camera information, detection frames and available clips together for careful human
+        review.
+      </p>
+      <a routerLink="/login">Review evidence <svg lucideArrowUpRight></svg></a>
+    </article>
+    <article class="feature-card" appReveal="up">
+      <span class="feature-icon"><svg lucideRoute></svg></span
+      ><span class="feature-number">04 / MOVEMENT</span>
+      <h3>A clearer view<br />of confirmed leads</h3>
+      <p>
+        Follow confirmed sightings and alerts in a subject’s movement timeline, one verified event
+        at a time.
+      </p>
+      <a routerLink="/login">Explore timelines <svg lucideArrowUpRight></svg></a>
+    </article>
+    <article class="feature-card" appReveal="up">
+      <span class="feature-icon"><svg lucideScanFace></svg></span
+      ><span class="feature-number">05 / IDENTIFICATION</span>
+      <h3>A workspace for<br />photo identification</h3>
+      <p>
+        Upload a photo to compare it with every enrolled watchlist person and open case. Results are
+        leads for review, never automatic identifications.
+      </p>
+      <a routerLink="/login">Open photo search <svg lucideArrowUpRight></svg></a>
+    </article>
+    <article class="feature-card" appReveal="up">
+      <span class="feature-icon"><svg lucideFileText></svg></span
+      ><span class="feature-number">06 / ACCOUNTABILITY</span>
+      <h3>Records that keep<br />the work transparent</h3>
+      <p>
+        Review activity logs and export reports, with access tailored to each team member’s
+        responsibilities.
+      </p>
+      <a routerLink="/login">Access reports <svg lucideArrowUpRight></svg></a>
+    </article>
+  </div>
+</section>
+<section id="how-it-works" class="workflow section-space">
+  <div class="shell workflow-grid">
+    <div>
+      <span class="eyebrow">FROM INFORMATION TO ACTION</span>
+      <h2>Every investigation<br />starts with a step.</h2>
+      <p class="workflow-intro">
+        Explore the process. Keep human judgment at the heart of every decision.
+      </p>
+      <div class="step-list" aria-label="Investigation workflow">
+        @for (step of steps; track step.title; let i = $index) {
+          <button
+            type="button"
+            class="step-button"
+            [class.selected]="activeStep() === i"
+            [attr.aria-pressed]="activeStep() === i"
+            aria-controls="step-preview"
+            (click)="activeStep.set(i)"
+          >
+            <span class="step-index">0{{ i + 1 }}</span
+            ><span
+              ><strong>{{ step.title }}</strong>
+              <span class="step-description">{{ step.description }}</span></span
+            ><svg lucideArrowUpRight></svg>
+          </button>
+        }
+      </div>
+    </div>
+    <div id="step-preview" appReveal="right" class="workflow-preview" aria-live="polite">
+      <div class="preview-top">
+        <app-brand-logo /><span><small>WORKFLOW PREVIEW</small></span
+        ><span class="preview-dots" aria-hidden="true">•••</span>
+      </div>
+      <div class="preview-body">
+        <span class="eyebrow">{{ steps[activeStep()].label }}</span>
+        <h3>{{ steps[activeStep()].detail }}</h3>
+        <span class="status-pill">{{ steps[activeStep()].status }}</span>
+        <div class="preview-checklist">
+          @for (item of steps[activeStep()].items; track item) {
+            <div>
+              <span><svg lucideCheck></svg></span>{{ item }}
+            </div>
+          }
+        </div>
+        <div class="progress-line">
+          @for (step of steps; track step.title; let i = $index) {
+            <span [class.complete]="i <= activeStep()"></span>
+          }
+        </div>
+        <p class="preview-caption">Illustrative workflow · No personal case data</p>
+      </div>
+    </div>
+  </div>
+</section>
+<section class="shell section-space roles">
+  <div class="section-heading" appReveal="up">
+    <div>
+      <span class="eyebrow">DIFFERENT ROLES. SHARED RESPONSIBILITY.</span>
+      <h2>A place for every<br />part of the team.</h2>
+    </div>
+    <p>Focused workspaces help each person do their part, with access appropriate to their role.</p>
+  </div>
+  <div class="role-grid">
+    <article appReveal="up">
+      <span>01</span>
+      <h3>System administrators</h3>
+      <p>Oversee cameras, review system activity and access operational reports.</p>
+    </article>
+    <article appReveal="up">
+      <span>02</span>
+      <h3>Watchlist managers</h3>
+      <p>Maintain records and review potential matches, alerts and sightings.</p>
+    </article>
+    <article appReveal="up">
+      <span>03</span>
+      <h3>Investigators</h3>
+      <p>Follow confirmed movements, examine cases and update investigation progress.</p>
+    </article>
+  </div>
+</section>
+<section id="questions" class="shell faq section-space">
+  <div>
+    <span class="eyebrow">A LITTLE MORE CLARITY</span>
+    <h2>Before you<br />get started.</h2>
+    <p>Have an account question?<br />Your system administrator can help.</p>
+  </div>
+  <div class="faq-list">
+    <details>
+      <summary>Who can use e-TAMBUA?<span aria-hidden="true">+</span></summary>
+      <p>
+        e-TAMBUA is for authorized system administrators, watchlist managers and investigators. Your
+        administrator provides your account and assigns your role.
+      </p>
+    </details>
+    <details>
+      <summary>Can I report a missing person here?<span aria-hidden="true">+</span></summary>
+      <p>
+        This website introduces the platform. Case registration happens inside the authorized
+        workspace; there is no public reporting form on this page.
+      </p>
+    </details>
+    <details>
+      <summary>How does photo search work?<span aria-hidden="true">+</span></summary>
+      <p>
+        Authorized officers upload a photo. The face recognition engine compares it with the enrolled
+        photos of active watchlist entries and open missing-person cases and returns the closest
+        possible match, with its confidence. Every search is logged.
+      </p>
+    </details>
+    <details>
+      <summary>
+        Are potential detections automatically confirmed?<span aria-hidden="true">+</span>
+      </summary>
+      <p>
+        No. Authorized watchlist managers review the evidence and confirm or reject pending alerts
+        and sightings. Confirmed entries can then appear in a subject’s movement timeline.
+      </p>
+    </details>
+  </div>
+</section>
+<section class="shell">
+  <div class="closing-cta" appReveal="up">
+    <span class="eyebrow">A SHARED PURPOSE STARTS HERE</span>
+    <h2>Bring the information together.<br />Help move the work forward.</h2>
+    <a routerLink="/login" class="button button-lime"
+      >Sign in to e-TAMBUA <svg lucideArrowUpRight></svg></a
+    ><span class="cta-note">For authorized personnel</span>
+  </div>
+</section>

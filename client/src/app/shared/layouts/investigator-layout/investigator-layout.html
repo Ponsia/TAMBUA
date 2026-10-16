@@ -1,0 +1,111 @@
+<div class="investigator-layout">
+  <aside
+    class="sidebar"
+    id="workspace-sidebar"
+    [class.mobile-open]="mobileMenuOpen"
+    (keydown.escape)="mobileMenuOpen = false"
+  >
+    <div class="logo">
+      <a routerLink="/" aria-label="e-TAMBUA home"><app-brand-logo /></a>
+    </div>
+
+    <nav class="navigation" (click)="mobileMenuOpen = false">
+      <a
+        routerLink="/investigator"
+        routerLinkActive="active"
+        [routerLinkActiveOptions]="{ exact: true }"
+        class="nav-item"
+      >
+        <svg lucideLayoutDashboard></svg>
+        <span>Dashboard</span>
+      </a>
+
+      <div class="nav-section-title">INVESTIGATION</div>
+
+      <a routerLink="/investigator/missing-persons" routerLinkActive="active" class="nav-item">
+        <svg lucideUserSearch></svg>
+        <span>Missing Persons</span>
+      </a>
+
+      <a routerLink="/investigator/watchlist" routerLinkActive="active" class="nav-item">
+        <svg lucideShieldAlert></svg>
+        <span>Watchlist</span>
+      </a>
+
+      <a routerLink="/investigator/camera-preview" routerLinkActive="active" class="nav-item">
+        <svg lucideCctv></svg>
+        <span>Camera Preview</span>
+      </a>
+
+      <a routerLink="/investigator/sightings" routerLinkActive="active" class="nav-item">
+        <svg lucideActivity></svg><span>Confirmed Sightings</span>
+      </a>
+
+      <a routerLink="/investigator/timeline" routerLinkActive="active" class="nav-item">
+        <svg lucideActivity></svg>
+        <span>Movement Timeline</span>
+      </a>
+
+      <div class="nav-section-title">IDENTIFICATION</div>
+
+      <a routerLink="/investigator/face-search" routerLinkActive="active" class="nav-item">
+        <svg lucideSearch></svg>
+        <span>Face Search</span>
+      </a>
+    </nav>
+
+    <div class="sidebar-footer">
+      <button type="button" class="logout-button" (click)="logout()">
+        <svg lucideLogOut></svg>
+        <span>Logout</span>
+      </button>
+    </div>
+  </aside>
+  @if (mobileMenuOpen) {
+    <button
+      type="button"
+      class="workspace-overlay"
+      aria-label="Close navigation"
+      (click)="mobileMenuOpen = false"
+    ></button>
+  }
+
+  <main class="main-area">
+    <header class="topbar">
+      <div class="topbar-left">
+        <button
+          type="button"
+          class="workspace-menu"
+          aria-label="Toggle navigation"
+          aria-controls="workspace-sidebar"
+          [attr.aria-expanded]="mobileMenuOpen"
+          (click)="mobileMenuOpen = !mobileMenuOpen"
+        >
+          ☰
+        </button>
+        <div>
+          <span class="topbar-title"> Investigator Console </span>
+        </div>
+      </div>
+
+      <div class="topbar-right">
+        <app-theme-toggle />
+        <button
+          type="button"
+          class="notification-button"
+          routerLink="/investigator/sightings"
+          aria-label="Open confirmed sightings"
+        >
+          <svg lucideBell></svg>
+        </button>
+
+        <app-profile-menu />
+      </div>
+    </header>
+
+    <section class="page-content">
+      <router-outlet></router-outlet>
+    </section>
+    <app-site-footer />
+  </main>
+</div>

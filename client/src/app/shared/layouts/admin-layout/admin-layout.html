@@ -1,0 +1,138 @@
+<div class="admin-layout">
+  <aside
+    class="sidebar"
+    id="workspace-sidebar"
+    [class.mobile-open]="mobileMenuOpen"
+    (keydown.escape)="mobileMenuOpen = false"
+  >
+    <div class="logo">
+      <a routerLink="/" aria-label="e-TAMBUA home"><app-brand-logo /></a>
+    </div>
+
+    <nav class="navigation" (click)="mobileMenuOpen = false">
+      <a
+        routerLink="/admin"
+        routerLinkActive="active"
+        [routerLinkActiveOptions]="{ exact: true }"
+        class="nav-item"
+      >
+        <svg lucideLayoutDashboard></svg>
+
+        <span> Dashboard </span>
+      </a>
+
+      <div class="nav-section">
+        <span class="nav-section-title"> MONITORING </span>
+      </div>
+
+      <a routerLink="/admin/missing-persons" routerLinkActive="active" class="nav-item">
+        <svg lucideUserSearch></svg>
+
+        <span> Missing Persons </span>
+      </a>
+
+      <a routerLink="/admin/watchlist" routerLinkActive="active" class="nav-item">
+        <svg lucideShieldAlert></svg>
+
+        <span> Watchlist </span>
+      </a>
+
+      <a routerLink="/admin/users" routerLinkActive="active" class="nav-item">
+        <svg lucideUsers></svg>
+
+        <span> Users </span>
+      </a>
+
+      <a routerLink="/admin/alerts" routerLinkActive="active" class="nav-item">
+        <svg lucideActivity></svg>
+
+        <span> Alerts </span>
+      </a>
+
+      <a routerLink="/admin/sightings" routerLinkActive="active" class="nav-item">
+        <svg lucideMapPin></svg>
+
+        <span> Sightings </span>
+      </a>
+
+      <a routerLink="/admin/cameras" routerLinkActive="active" class="nav-item">
+        <svg lucideCctv></svg>
+
+        <span> Cameras </span>
+      </a>
+
+      <div class="nav-section">
+        <span class="nav-section-title"> SYSTEM </span>
+      </div>
+
+      <a routerLink="/admin/reports" routerLinkActive="active" class="nav-item">
+        <svg lucideFileText></svg>
+
+        <span> Reports </span>
+      </a>
+
+      <a routerLink="/admin/audit-logs" routerLinkActive="active" class="nav-item">
+        <svg lucideShieldCheck></svg>
+
+        <span> Audit Logs </span>
+      </a>
+    </nav>
+
+    <div class="sidebar-footer">
+      <button type="button" class="logout-button" (click)="logout()">
+        <svg lucideLogOut></svg>
+
+        <span> Logout </span>
+      </button>
+    </div>
+  </aside>
+  @if (mobileMenuOpen) {
+    <button
+      type="button"
+      class="workspace-overlay"
+      aria-label="Close navigation"
+      (click)="mobileMenuOpen = false"
+    ></button>
+  }
+
+  <div class="main-area">
+    <header class="topbar">
+      <div class="topbar-left">
+        <button
+          type="button"
+          class="workspace-menu"
+          aria-label="Toggle navigation"
+          aria-controls="workspace-sidebar"
+          [attr.aria-expanded]="mobileMenuOpen"
+          (click)="mobileMenuOpen = !mobileMenuOpen"
+        >
+          ☰
+        </button>
+        <span class="console-name"> Admin Console </span>
+      </div>
+
+      <div class="topbar-right">
+        <app-theme-toggle />
+        <button
+          type="button"
+          class="notification-button"
+          routerLink="/admin/alerts"
+          aria-label="Open alerts"
+        >
+          <svg lucideBell></svg>
+
+          <span class="notification-badge">
+            {{ pendingAlerts() ?? '—' }}
+          </span>
+        </button>
+
+        <app-profile-menu />
+      </div>
+    </header>
+
+    <main class="main-content">
+      <router-outlet></router-outlet>
+    </main>
+    <app-site-footer />
+  </div>
+</div>

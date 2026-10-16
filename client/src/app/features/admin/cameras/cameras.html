@@ -1,0 +1,279 @@
+<div class="cameras-page">
+  @if (loading) {
+    <p role="status">Loading records...</p>
+  }
+  @if (errorMessage) {
+    <p role="alert">
+      {{ errorMessage }}
+      <button type="button" (click)="reload()" [disabled]="loading || saving">Retry</button>
+    </p>
+  }
+  @if (relatedError) {
+    <p role="status">{{ relatedError }}</p>
+  }
+
+  <header class="page-header">
+    <div>
+      <h1>Cameras</h1>
+
+      <p>Manage surveillance cameras connected to the e-TAMBUA system.</p>
+    </div>
+
+    <button type="button" class="primary-button" (click)="openForm()">
+      <svg lucidePlus></svg>
+
+      Add Camera
+    </button>
+  </header>
+  @if (showCameraForm) {
+    <section class="records-card">
+      <div class="records-header">
+        <h2>{{ editingId ? 'Edit Camera' : 'Add Camera' }}</h2>
+      </div>
+      <form class="camera-form" #cameraForm="ngForm" (ngSubmit)="saveRecord()">
+        <label>Name<input name="name" [(ngModel)]="form['name']" required /></label>
+        <label>Location<input name="location" [(ngModel)]="form['location']" required /></label>
+        <label>Zone<input name="zone" [(ngModel)]="form['zone']" /></label>
+        <label>Connection
+          <select name="connectionType" [(ngModel)]="form['connectionType']" required>
+            <option value="" disabled>Select a connection</option>
+            <option value="WIRED">Wired</option>
+            <option value="WIRELESS">Wireless</option>
+          </select>
+        </label>
+        <label>Stream source
+          <input name="streamSource" [(ngModel)]="form['streamSource']" required maxlength="500"
+            placeholder="rtsp://127.0.0.1:8554/live/obs" />
+          <small>RTSP/RTMP/HTTP stream URL, a local device number (e.g. 0), a video file path, or
+            "browser" for a camera streamed from the investigator's browser.</small>
+        </label>
+        <label>IP address
+          <input name="ipAddress" [(ngModel)]="form['ipAddress']" [pattern]="ipPattern"
+            placeholder="192.168.1.10" #ip="ngModel" />
+          @if (ip.invalid && (ip.touched || cameraForm.submitted)) {
+            <small class="field-error">Enter a valid IPv4 address.</small>
+          }
+        </label>
+        <label>Port
+          <input name="port" [(ngModel)]="form['port']" inputmode="numeric"
+            pattern="[0-9]+" placeholder="554" />
+          <small>Optional. Whole number from 1 to 65535.</small>
+        </label>
+        <label>Status
+          <select name="status" [(ngModel)]="form['status']">
+            <option value="" disabled>Select a status</option>
+            <option value="ACTIVE">Active</option>
+            <option value="OFFLINE">Offline</option>
+            <option value="DISABLED">Disabled</option>
+          </select>
+        </label>
+        <div class="form-actions">
+          <button type="submit" class="primary-button" [disabled]="saving || loading">
+            {{ saving ? 'Saving...' : editingId ? 'Save Camera' : 'Add Camera' }}
+          </button>
+          <button type="button" class="filter-button" (click)="closeForm()" [disabled]="saving">Cancel</button>
+        </div>
+      </form>
+    </section>
+  }
+
+  <section class="summary-grid">
+    <article class="summary-card">
+      <div class="summary-icon">
+        <svg lucideCctv></svg>
+      </div>
+
+      <div class="summary-info">
+        <span>Total Cameras</span>
+        <strong>{{ loaded ? count() : '—' }}</strong>
+        <small>All registered cameras</small>
+      </div>
+    </article>
+
+    <article class="summary-card">
+      <div class="summary-icon">
+        <svg lucideCircleCheck></svg>
+      </div>
+
+      <div class="summary-info">
+        <span>Active</span>
+        <strong>{{ loaded ? count('ACTIVE') : '—' }}</strong>
+        <small>Currently operational</small>
+      </div>
+    </article>
+
+    <article class="summary-card">
+      <div class="summary-icon">
+        <svg lucideWifiOff></svg>
+      </div>
+
+      <div class="summary-info">
+        <span>Offline</span>
+        <strong>{{ loaded ? count('OFFLINE') : '—' }}</strong>
+        <small>Not currently streaming</small>
+      </div>
+    </article>
+
+    <article class="summary-card">
+      <div class="summary-icon">
+        <svg lucideCircleOff></svg>
+      </div>
+
+      <div class="summary-info">
+        <span>Disabled</span>
+        <strong>{{ loaded ? count('DISABLED') : '—' }}</strong>
+        <small>Administratively disabled</small>
+      </div>
+    </article>
+  </section>
+
+  <section class="records-card">
+    <div class="records-header">
+      <div>
+        <h2>Camera Records</h2>
+
+        <p>View and manage cameras registered in e-TAMBUA.</p>
+      </div>
+
+      <span class="record-count"> {{ filteredRecords.length }} cameras </span>
+    </div>
+
+    <div class="records-toolbar">
+      <div class="search-field">
+        <svg lucideSearch></svg>
+
+        <input
+          [(ngModel)]="searchTerm"
+          (ngModelChange)="filtersChanged()"
+          type="text"
+          placeholder="Search cameras..."
+        />
+      </div>
+
+      <div class="toolbar-actions">
+        <select
+          [(ngModel)]="selectedStatus"
+          (ngModelChange)="filtersChanged()"
+          aria-label="Filter cameras by status"
+        >
+          <option value="ALL">All statuses</option>
+
+          <option value="ACTIVE">Active</option>
+
+          <option value="OFFLINE">Offline</option>
+
+          <option value="DISABLED">Disabled</option>
+        </select>
+
+        <button type="button" class="filter-button" (click)="filtersChanged()">
+          <svg lucideSlidersHorizontal></svg>
+
+          Filters
+        </button>
+      </div>
+    </div>
+
+    <div class="table-container">
+      <table>
+        <thead>
+          <tr>
+            <th>CAMERA</th>
+            <th>LOCATION</th>
+            <th>ZONE</th>
+            <th>IP ADDRESS</th>
+            <th>PORT</th>
+            <th>CONNECTION</th>
+            <th>STREAM SOURCE</th>
+            <th>STATUS</th>
+            <th>DATE ADDED</th>
+            <th>ACTION</th>
+          </tr>
+        </thead>
+
+        <tbody>
+          @for (record of displayedRecords; track record.id) {
+            <tr>
+              <td>{{ record.name }}</td>
+              <td>{{ record.location }}</td>
+              <td>{{ record.zone || '—' }}</td>
+              <td>{{ record.ipAddress || '—' }}</td>
+              <td>{{ record.port ?? '—' }}</td>
+              <td>{{ record.connectionType === 'WIRED' ? 'Wired' : 'Wireless' }}</td>
+              <td>{{ record.streamSource }}</td>
+              <td>{{ record.status }}</td>
+              <td>{{ record.createdAt | date: 'medium' }}</td>
+              <td>
+                @if (canManage) {
+                  <button
+                    type="button"
+                    class="view-button"
+                    (click)="openForm(record)"
+                    [disabled]="saving"
+                  >
+                    Edit
+                  </button>
+                }
+                @if (canManage && record.status !== 'DISABLED') {
+                  <button
+                    type="button"
+                    class="view-button"
+                    (click)="changeStatus(record, 'DISABLED')"
+                    [disabled]="saving"
+                  >
+                    Disable
+                  </button>
+                }
+              </td>
+            </tr>
+          } @empty {
+            @if (loaded && !loading && !errorMessage) {
+              <tr class="empty-row">
+                <td colspan="10">
+                  <div class="empty-state">
+                    <div class="empty-icon">
+                      <svg lucideCctv></svg>
+                    </div>
+
+                    <h3>No cameras registered</h3>
+
+                    <p>Cameras added to e-TAMBUA will appear here.</p>
+
+                    <button type="button" class="empty-add-button" (click)="openForm()">
+                      <svg lucidePlus></svg>
+
+                      Add Camera
+                    </button>
+                  </div>
+                </td>
+              </tr>
+            }
+          }
+        </tbody>
+      </table>
+      @if (loaded && pageCount > 1) {
+        <div class="toolbar-actions" aria-label="Pagination">
+          <button
+            type="button"
+            class="filter-button"
+            (click)="pageIndex = pageIndex - 1"
+            [disabled]="pageIndex === 0"
+          >
+            Previous
+          </button>
+          <span
+            >Page {{ pageIndex + 1 }} of {{ pageCount }} ·
+            {{ filteredRecords.length }} records</span
+          >
+          <button
+            type="button"
+            class="filter-button"
+            (click)="pageIndex = pageIndex + 1"
+            [disabled]="pageIndex + 1 >= pageCount"
+          >
+            Next
+          </button>
+        </div>
+      }
+    </div>
+  </section>
+</div>

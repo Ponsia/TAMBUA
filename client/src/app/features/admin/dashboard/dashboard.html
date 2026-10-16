@@ -1,0 +1,207 @@
+<div class="dashboard-page" [attr.aria-busy]="loading">
+  @if (loading) {
+    <p role="status">Loading dashboard...</p>
+  }
+  @for (error of errors; track error) {
+    <p role="alert">{{ error }}</p>
+  }
+
+  <div class="page-header">
+    <div>
+      <h2>Dashboard</h2>
+
+      <p>Overview of case activity, detection alerts and system monitoring.</p>
+    </div>
+  </div>
+
+  <section class="section-block">
+    <div class="section-heading">
+      <h3>Case Overview</h3>
+      <span>Missing person case statistics</span>
+    </div>
+
+    <div class="stats-grid">
+      <div class="stat-card">
+        <div class="stat-icon">
+          <svg lucideFolderOpen></svg>
+        </div>
+
+        <div class="stat-content">
+          <span>Open Cases</span>
+          <strong>{{ caseStats?.open ?? '—' }}</strong>
+        </div>
+      </div>
+
+      <div class="stat-card">
+        <div class="stat-icon">
+          <svg lucideUserCheck></svg>
+        </div>
+
+        <div class="stat-content">
+          <span>Found Cases</span>
+          <strong>{{ caseStats?.found ?? '—' }}</strong>
+        </div>
+      </div>
+
+      <div class="stat-card">
+        <div class="stat-icon">
+          <svg lucideCircleCheck></svg>
+        </div>
+
+        <div class="stat-content">
+          <span>Closed Cases</span>
+          <strong>{{ caseStats?.closed ?? '—' }}</strong>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="section-block">
+    <div class="section-heading">
+      <h3>Alert Overview</h3>
+      <span>Watchlist recognition alerts</span>
+    </div>
+
+    <div class="stats-grid four">
+      <div class="stat-card">
+        <div class="stat-icon">
+          <svg lucideActivity></svg>
+        </div>
+
+        <div class="stat-content">
+          <span>Total Alerts</span>
+          <strong>{{ alertStats?.total ?? '—' }}</strong>
+        </div>
+      </div>
+
+      <div class="stat-card">
+        <div class="stat-icon">
+          <svg lucideClock></svg>
+        </div>
+
+        <div class="stat-content">
+          <span>Pending</span>
+          <strong>{{ alertStats?.pending ?? '—' }}</strong>
+        </div>
+      </div>
+
+      <div class="stat-card">
+        <div class="stat-icon">
+          <svg lucideShieldCheck></svg>
+        </div>
+
+        <div class="stat-content">
+          <span>Confirmed</span>
+          <strong>{{ alertStats?.confirmed ?? '—' }}</strong>
+        </div>
+      </div>
+
+      <div class="stat-card">
+        <div class="stat-icon">
+          <svg lucideShieldX></svg>
+        </div>
+
+        <div class="stat-content">
+          <span>Rejected</span>
+          <strong>{{ alertStats?.rejected ?? '—' }}</strong>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="dashboard-grid">
+    <article class="panel">
+      <div class="panel-header">
+        <div>
+          <h3>Recent Alerts</h3>
+
+          <p>Latest watchlist detection activity.</p>
+        </div>
+      </div>
+
+      @if (alertsLoaded) {
+        @for (record of recentAlerts; track record.id) {
+          <div class="camera-item">
+            <span
+              >{{ subjectName(record) }} ·
+              {{ record.detectedAt | date: 'short' }}</span
+            ><strong>{{ record.status }}</strong>
+          </div>
+        } @empty {
+          <div class="empty-state">
+            <svg lucideActivity></svg>
+
+            <h4>No alerts available</h4>
+
+            <p>Recent watchlist alerts will appear here.</p>
+          </div>
+        }
+      }
+    </article>
+
+    <article class="panel">
+      <div class="panel-header">
+        <div>
+          <h3>Recent Sightings</h3>
+
+          <p>Latest possible missing person sightings.</p>
+        </div>
+      </div>
+
+      @if (sightingsLoaded) {
+        @for (record of recentSightings; track record.id) {
+          <div class="camera-item">
+            <span
+              >{{ subjectName(record) }} ·
+              {{ record.detectedAt | date: 'short' }}</span
+            ><strong>{{ record.status }}</strong>
+          </div>
+        } @empty {
+          <div class="empty-state">
+            <svg lucideMapPin></svg>
+
+            <h4>No sightings available</h4>
+
+            <p>Recent missing person sightings will appear here.</p>
+          </div>
+        }
+      }
+    </article>
+  </section>
+
+  <section class="panel camera-panel">
+    <div class="panel-header">
+      <div>
+        <h3>Camera Status</h3>
+
+        <p>Overview of connected surveillance cameras.</p>
+      </div>
+    </div>
+
+    <div class="camera-stats">
+      <div class="camera-item">
+        <span class="camera-label"> Total Cameras </span>
+
+        <strong>{{ (camerasLoaded ? cameras.length : null) ?? '—' }}</strong>
+      </div>
+
+      <div class="camera-item">
+        <span class="camera-label"> Active </span>
+
+        <strong>{{ (camerasLoaded ? cameraCount('ACTIVE') : null) ?? '—' }}</strong>
+      </div>
+
+      <div class="camera-item">
+        <span class="camera-label"> Offline </span>
+
+        <strong>{{ (camerasLoaded ? cameraCount('OFFLINE') : null) ?? '—' }}</strong>
+      </div>
+
+      <div class="camera-item">
+        <span class="camera-label"> Disabled </span>
+
+        <strong>{{ (camerasLoaded ? cameraCount('DISABLED') : null) ?? '—' }}</strong>
+      </div>
+    </div>
+  </section>
+</div>

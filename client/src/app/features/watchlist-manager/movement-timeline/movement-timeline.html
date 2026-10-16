@@ -1,0 +1,184 @@
+<div class="timeline-page">
+  <header class="page-header">
+    <div>
+      <span class="eyebrow"> MONITORING </span>
+
+      <h1>Movement Timeline</h1>
+
+      <p>Track confirmed movements from watchlist alerts and missing-person sightings.</p>
+    </div>
+  </header>
+  <div class="subject-toolbar">
+    <label
+      >Subject type<select [(ngModel)]="subjectType" (ngModelChange)="subjectTypeChanged()">
+        <option value="MISSING_PERSON">Missing person</option>
+        <option value="WATCHLIST">Watchlist person</option>
+      </select></label
+    >
+    <label
+      >Subject<select
+        [disabled]="subjectsLoading"
+        [(ngModel)]="subjectId"
+        (ngModelChange)="loadTimeline()"
+      >
+        <option value="">Select a person</option>
+        @for (subject of subjects; track subject.id) {
+          <option [value]="subject.id">{{ subject.fullName }} · {{ subject.id }}</option>
+        }
+      </select></label
+    >
+    <button
+      type="button"
+      class="filter-button"
+      (click)="loadTimeline()"
+      [disabled]="loading || !subjectId"
+    >
+      Refresh
+    </button>
+  </div>
+  @if (subjectsLoading) {
+    <p class="timeline-status" role="status">Loading people...</p>
+  }
+  @if (subjectsError) {
+    <p role="alert">{{ subjectsError }}</p>
+    <button type="button" class="filter-button" (click)="loadSubjects()">
+      Retry loading people
+    </button>
+  }
+  @if (loading) {
+    <p role="status">Loading movements...</p>
+  }
+  @if (errorMessage) {
+    <p role="alert">{{ errorMessage }}</p>
+  }
+  @if (!subjectId) {
+    <p role="status">Select a person to view confirmed movements.</p>
+  }
+
+  <section class="summary-grid">
+    <article class="summary-card">
+      <div class="summary-icon total-icon">
+        <svg lucideActivity></svg>
+      </div>
+
+      <div>
+        <span> Total Movements </span>
+
+        <strong>{{ loaded ? count() : '—' }}</strong>
+      </div>
+    </article>
+
+    <article class="summary-card">
+      <div class="summary-icon alert-icon">
+        <svg lucideShieldAlert></svg>
+      </div>
+
+      <div>
+        <span> Confirmed Alerts </span>
+
+        <strong>{{ loaded ? count('ALERT') : '—' }}</strong>
+      </div>
+    </article>
+
+    <article class="summary-card">
+      <div class="summary-icon sighting-icon">
+        <svg lucideUserSearch></svg>
+      </div>
+
+      <div>
+        <span> Confirmed Sightings </span>
+
+        <strong>{{ loaded ? count('SIGHTING') : '—' }}</strong>
+      </div>
+    </article>
+  </section>
+
+  <section class="timeline-card">
+    <div class="timeline-header">
+      <div>
+        <h2>Confirmed Movement Activity</h2>
+
+        <p>Timeline entries are created from confirmed detections across monitored cameras.</p>
+      </div>
+    </div>
+
+    <div class="toolbar">
+      <div class="search-box">
+        <svg lucideSearch></svg>
+
+        <input
+          aria-label="Search timeline by camera"
+          type="text"
+          [(ngModel)]="searchTerm"
+          placeholder="Search by camera..."
+        />
+      </div>
+
+      <div class="filter-control">
+        <select aria-label="Filter by detection source" [(ngModel)]="selectedSource">
+          <option value="ALL">All Sources</option>
+
+          <option value="ALERT">Alerts</option>
+
+          <option value="SIGHTING">Sightings</option>
+        </select>
+      </div>
+    </div>
+
+    <div class="timeline-content">
+      @for (entry of filteredEntries; track entry.source + entry.id) {
+        <article class="timeline-entry">
+          <div class="timeline-marker"><span></span></div>
+          <div class="entry-card">
+            <div class="entry-top">
+              <span class="entry-source">{{ entry.source }}</span
+              ><span class="entry-time">{{ entry.detectedAt | date: 'medium' }}</span>
+            </div>
+            <div class="entry-content">
+              <div class="entry-image">
+                <app-evidence
+                  [snapshot]="entry.frameSnapshotUrl"
+                  [clip]="entry.clipUrl"
+                ></app-evidence>
+              </div>
+              <div class="entry-details">
+                <h3>{{ entry.cameraName }}</h3>
+                <p>Confidence: {{ confidencePercentage(entry.confidenceScore) }}</p>
+              </div>
+            </div>
+          </div>
+        </article>
+      } @empty {
+        @if (!subjectId) {
+          <div class="empty-state">
+            <div class="empty-icon"><svg lucideActivity></svg></div>
+            <h3>Select a person to get started</h3>
+            <p>Choose a subject above to see their confirmed alerts and sightings.</p>
+          </div>
+        } @else if (loaded && !loading && !errorMessage) {
+          <div class="empty-state">
+            <div class="empty-icon">
+              <svg lucideActivity></svg>
+            </div>
+
+            <h3>
+              {{
+                entries.length
+                  ? 'No movements match your filters'
+                  : 'No confirmed movement activity'
+              }}
+            </h3>
+
+            <p>
+              {{
+                entries.length
+                  ? 'Try a different camera name or source.'
+                  : 'Confirmed alerts and sightings will appear here as movement timeline entries.'
+              }}
+            </p>
+          </div>
+        }
+      }
+    </div>
+  </section>
+</div>

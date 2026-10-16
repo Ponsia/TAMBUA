@@ -1,0 +1,134 @@
+<a class="skip-link" href="#main-content">Skip to content</a>
+<div class="public-site">
+  <div class="utility-bar">
+    <div class="shell">
+      <span><svg lucideShieldCheck></svg> Built for responsible investigations</span
+      ><a href="#how-it-works"
+        >A clearer path from information to action <span aria-hidden="true">↗</span></a
+      >
+    </div>
+  </div>
+  <header
+    [class.header-hidden]="headerHidden() && !menuOpen()"
+    class="site-header"
+    (keydown.escape)="menuOpen.set(false); menuButton.focus()"
+  >
+    <div class="shell header-inner">
+      <a routerLink="/" class="wordmark" aria-label="e-TAMBUA home"><app-brand-logo /></a>
+      <nav class="desktop-nav" aria-label="Main navigation">
+        <a href="#about">Our purpose</a><a href="#capabilities">The platform</a
+        ><a href="#how-it-works">How it works</a>
+      </nav>
+      <div class="header-actions">
+        <app-theme-toggle /><a routerLink="/login" class="button button-dark header-login"
+          >Sign in <svg lucideArrowUpRight></svg></a
+        ><button
+          class="menu-toggle"
+          #menuButton
+          type="button"
+          (click)="menuOpen.set(!menuOpen())"
+          [attr.aria-expanded]="menuOpen()"
+          aria-controls="mobile-nav"
+          [attr.aria-label]="menuOpen() ? 'Close menu' : 'Open menu'"
+        >
+          @if (menuOpen()) {
+            <svg lucideX></svg>
+          } @else {
+            <svg lucideMenu></svg>
+          }
+        </button>
+      </div>
+    </div>
+    @if (menuOpen()) {
+      <nav id="mobile-nav" class="mobile-nav" aria-label="Mobile navigation">
+        <a href="#about" (click)="menuOpen.set(false)">Our purpose</a
+        ><a href="#capabilities" (click)="menuOpen.set(false)">The platform</a
+        ><a href="#how-it-works" (click)="menuOpen.set(false)">How it works</a
+        ><a routerLink="/login">Sign in to your workspace ↗</a>
+      </nav>
+    }
+  </header>
+  <main id="main-content" tabindex="-1">
+    <section
+      class="hero-stage"
+      aria-label="Introducing e-TAMBUA"
+      aria-roledescription="carousel"
+      (mouseenter)="hoverHero(true)"
+      (mouseleave)="hoverHero(false)"
+      (focusin)="focusHero(true)"
+      (focusout)="focusHero(false)"
+    >
+      <img
+        class="hero-backdrop"
+        src="images/e-tambua-camera-vision.png"
+        alt="Illustrative camera vision workstation"
+        width="1536"
+        height="1024"
+        fetchpriority="high"
+      />
+      <div class="hero-shade"></div>
+      <div class="shell stage-content">
+        <div [attr.aria-live]="playing() ? 'off' : 'polite'" aria-atomic="true">
+          @for (item of slides; track $index) {
+            @if (slide() === $index) {
+              <div
+                class="slide-copy"
+                role="group"
+                aria-roledescription="slide"
+                [attr.aria-label]="$index + 1 + ' of ' + slides.length"
+              >
+                <span class="eyebrow">{{ item.label }}</span>
+                <h1>
+                  {{ item.title }}<br /><em>{{ item.emphasis }}</em>
+                </h1>
+                <p>{{ item.description }}</p>
+              </div>
+            }
+          }
+        </div>
+        <div class="stage-actions">
+          <a routerLink="/login" class="button button-lime"
+            >Open your workspace <svg lucideArrowUpRight></svg
+          ></a>
+          <a href="#how-it-works" class="button stage-secondary"
+            >See how it works <svg lucideArrowRight></svg
+          ></a>
+        </div>
+        <div class="slide-controls" aria-label="Presentation controls">
+          <button type="button" (click)="changeSlide(-1)" aria-label="Previous slide">
+            ← Previous
+          </button>
+          <span>{{ slide() + 1 }} / {{ slides.length }}</span>
+          <button type="button" (click)="changeSlide(1)" aria-label="Next slide">Next →</button>
+          @if (!reducedMotion()) {
+            <button type="button" (click)="togglePlayback()" [attr.aria-pressed]="playing()">
+              {{ playing() ? 'Pause slideshow' : 'Play slideshow' }}
+            </button>
+          }
+        </div>
+        <span class="stage-caption">Illustrative image · Camera evidence. Human review.</span>
+      </div>
+    </section>
+    <section class="shell trust-panels" aria-label="Our principles">
+      <article appReveal="left" class="trust-intro">
+        <span class="eyebrow">THE REASON BEHIND THE WORK</span>
+        <h2>Every person deserves<br />to be accounted for.</h2>
+        <a href="#about" class="text-link">Our purpose <svg lucideArrowRight></svg></a>
+      </article>
+      <article appReveal="up" class="trust-panel trust-blue">
+        <svg lucideShieldCheck></svg>
+        <h2>Evidence informed.</h2>
+        <p>Camera evidence provides context. Authorized people make the decision.</p>
+        <a href="#capabilities">Explore the platform <span aria-hidden="true">↗</span></a>
+      </article>
+      <article appReveal="right" class="trust-panel trust-amber">
+        <svg lucideUsers></svg>
+        <h2>Working together.</h2>
+        <p>Clear responsibilities. Connected information. One shared human purpose.</p>
+        <a href="#how-it-works">Follow the process <span aria-hidden="true">↗</span></a>
+      </article>
+    </section>
+    <app-landing-content />
+  </main>
+  <app-site-footer />
+</div>

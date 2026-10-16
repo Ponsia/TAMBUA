@@ -1,0 +1,48 @@
+logLevel: info
+logDestinations: [stdout]
+
+api: yes
+apiAddress: :9997
+
+rtsp: yes
+rtspAddress: :8554
+
+rtmp: yes
+rtmpAddress: :1935
+
+hls: yes
+hlsAddress: :8888
+hlsAllowOrigins: ['*']
+hlsVariant: lowLatency
+hlsSegmentCount: 7
+hlsSegmentDuration: 1s
+hlsPartDuration: 200ms
+
+webrtc: yes
+webrtcAddress: :8889
+webrtcAllowOrigins: ['*']
+webrtcAdditionalHosts: [127.0.0.1]
+webrtcLocalUDPAddress: :8189
+webrtcIPsFromInterfaces: yes
+
+srt: no
+srtAddress: :8890
+
+moq: no
+
+authInternalUsers:
+  - user: any
+    pass:
+    ips: []
+    permissions:
+      - action: publish
+      - action: read
+      - action: playback
+      - action: api
+      - action: metrics
+      - action: pprof
+
+paths:
+  # OBS pushes to rtmp://127.0.0.1:1935/live with Stream Key "obs"
+  # → MediaMTX sees the combined path "live/obs" — this key MUST match exactly.
+  live/obs:

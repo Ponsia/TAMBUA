@@ -1,0 +1,413 @@
+<div class="missing-persons-page">
+  @if (successMessage) {
+    <div class="toast toast--success" role="status">
+      <svg lucidePlus></svg>
+      <span>{{ successMessage }}</span>
+    </div>
+  }
+
+  @if (loading) {
+    <p role="status">Loading records...</p>
+  }
+  @if (errorMessage) {
+    <p role="alert">
+      {{ errorMessage }}
+      <button type="button" (click)="reload()" [disabled]="loading || saving">Retry</button>
+    </p>
+  }
+  @if (relatedError) {
+    <p role="status">{{ relatedError }}</p>
+  }
+
+  <header class="page-header">
+    <div>
+      <span class="eyebrow"> CASE MANAGEMENT </span>
+
+      <h1>Missing Persons</h1>
+
+      <p>Register and manage missing person case information.</p>
+    </div>
+
+    <button
+      type="button"
+      class="primary-button"
+      (click)="openAddCase()"
+      [disabled]="!canManage || saving"
+    >
+      <svg lucidePlus></svg>
+
+      <span> Add Missing Person </span>
+    </button>
+  </header>
+
+  <section class="summary-grid">
+    <article class="summary-card">
+      <div class="summary-icon">
+        <svg lucideUserSearch></svg>
+      </div>
+
+      <div>
+        <span>Total Cases</span>
+        <strong>{{ loaded ? count() : '—' }}</strong>
+      </div>
+    </article>
+
+    <article class="summary-card">
+      <div class="summary-icon open-icon">
+        <svg lucideSearch></svg>
+      </div>
+
+      <div>
+        <span>Open</span>
+        <strong>{{ loaded ? count('OPEN') : '—' }}</strong>
+      </div>
+    </article>
+
+    <article class="summary-card">
+      <div class="summary-icon found-icon">
+        <svg lucideUserSearch></svg>
+      </div>
+
+      <div>
+        <span>Found</span>
+        <strong>{{ loaded ? count('FOUND') : '—' }}</strong>
+      </div>
+    </article>
+
+    <article class="summary-card">
+      <div class="summary-icon closed-icon">
+        <svg lucideUserSearch></svg>
+      </div>
+
+      <div>
+        <span>Closed</span>
+        <strong>{{ loaded ? count('CLOSED') : '—' }}</strong>
+      </div>
+    </article>
+  </section>
+
+  <section class="records-card">
+    <div class="records-header">
+      <div>
+        <h2>Missing Person Cases</h2>
+
+        <p>View and manage registered missing person records.</p>
+      </div>
+    </div>
+
+    <div class="toolbar">
+      <div class="search-box">
+        <svg lucideSearch></svg>
+
+        <input
+          type="text"
+          [(ngModel)]="searchTerm"
+          (ngModelChange)="filtersChanged()"
+          placeholder="Search by name or location..."
+        />
+      </div>
+
+      <div class="filter-control">
+        <svg lucideSlidersHorizontal></svg>
+
+        <select
+          (ngModelChange)="filtersChanged()"
+          [(ngModel)]="selectedStatus"
+          (change)="onStatusChange()"
+        >
+          <option value="ALL">All Statuses</option>
+          <option value="OPEN">Open</option>
+          <option value="FOUND">Found</option>
+          <option value="CLOSED">Closed</option>
+        </select>
+      </div>
+
+      <div class="filter-control">
+        <select (ngModelChange)="filtersChanged()" [(ngModel)]="selectedCategory">
+          <option value="ALL">All Categories</option>
+          <option value="CHILD">Child</option>
+          <option value="ELDERLY">Elderly</option>
+          <option value="TRAFFICKING_VICTIM">Trafficking Victim</option>
+        </select>
+      </div>
+    </div>
+
+    <div class="table-wrapper">
+      <table>
+        <thead>
+          <tr>
+            <th>PERSON</th>
+            <th>CATEGORY</th>
+            <th>LAST SEEN LOCATION</th>
+            <th>LAST SEEN DATE</th>
+            <th>REPORTING CONTACT</th>
+            <th>CASE OFFICER</th>
+            <th>STATUS</th>
+            <th>ACTION</th>
+          </tr>
+        </thead>
+
+        <tbody>
+          @for (record of displayedRecords; track record.id) {
+            <tr>
+              <td>
+                <div class="person-cell">
+                  @if (record.photo_url) {
+                    <img
+                      class="person-avatar"
+                      [src]="record.photo_url"
+                      [alt]="record.full_name"
+                      loading="lazy"
+                      (error)="onPhotoError($event)"
+                    />
+                  } @else {
+                    <div class="person-avatar person-avatar--placeholder">
+                      {{ initials(record.full_name) }}
+                    </div>
+                  }
+                  <span class="person-name">{{ record.full_name }}</span>
+                </div>
+              </td>
+              <td>{{ record.category }}</td>
+              <td>{{ record.last_seen_location || '—' }}</td>
+              <td>{{ (record.last_seen_date | date: 'mediumDate') || '—' }}</td>
+              <td>{{ record.reporting_contact }}</td>
+              <td>{{ officerName(record.case_officer_id) }}</td>
+              <td>
+                <span class="status-pill" [attr.data-status]="record.status">
+                  {{ record.status }}
+                </span>
+              </td>
+              <td>
+                @if (canManage) {
+                  <div class="action-buttons">
+                    <button
+                      type="button"
+                      class="view-button"
+                      (click)="openForm(record)"
+                      [disabled]="saving"
+                    >
+                      Edit
+                    </button>
+                  </div>
+                }
+              </td>
+            </tr>
+          }
+        </tbody>
+      </table>
+
+      @if (loaded && pageCount > 1) {
+        <div class="toolbar-actions" aria-label="Pagination">
+          <button
+            type="button"
+            class="filter-button"
+            (click)="pageIndex = pageIndex - 1"
+            [disabled]="pageIndex === 0"
+          >
+            Previous
+          </button>
+          <span
+            >Page {{ pageIndex + 1 }} of {{ pageCount }} ·
+            {{ filteredRecords.length }} records</span
+          >
+          <button
+            type="button"
+            class="filter-button"
+            (click)="pageIndex = pageIndex + 1"
+            [disabled]="pageIndex + 1 >= pageCount"
+          >
+            Next
+          </button>
+        </div>
+      }
+
+      @if (loaded && !loading && !errorMessage && !filteredRecords.length) {
+        <div class="empty-state">
+          <div class="empty-icon">
+            <svg lucideUserSearch></svg>
+          </div>
+
+          <h3>No missing person cases</h3>
+
+          <p>Missing person records will appear here once they have been registered.</p>
+
+          <button
+            type="button"
+            class="empty-add-button"
+            (click)="openAddCase()"
+            [disabled]="!canManage || saving"
+          >
+            <svg lucidePlus></svg>
+
+            Add Missing Person
+          </button>
+        </div>
+      }
+    </div>
+  </section>
+
+  @if (showCaseForm) {
+    <div class="modal-backdrop" (click)="closeCaseForm()">
+      <div class="case-modal" (click)="$event.stopPropagation()">
+        <div class="modal-header">
+          <div>
+            <h2>
+              {{ editingId ? 'Edit Missing Person' : 'Add Missing Person' }}
+            </h2>
+
+            <p>Register a new missing person case.</p>
+          </div>
+
+          <button type="button" class="close-button" (click)="closeCaseForm()">
+            <svg lucideX></svg>
+          </button>
+        </div>
+
+        @if (errorMessage) {
+          <p role="alert">{{ errorMessage }}</p>
+        }
+        <form class="case-form" #recordForm="ngForm" (ngSubmit)="recordForm.valid && saveRecord()">
+          <!-- Photo upload field -->
+          <div class="form-group full-width">
+            <label for="photo"> Person Photo </label>
+
+            <div class="photo-field">
+              <div class="photo-preview">
+                @if (photoPreview) {
+                  <img [src]="photoPreview" alt="Person preview" />
+                } @else {
+                  <svg lucideImage></svg>
+                }
+              </div>
+
+              <div class="photo-actions">
+                <button type="button" class="photo-upload-button" (click)="photoInput.click()" [disabled]="saving">
+                  <svg lucideUpload></svg>
+                  <span>{{ photoPreview ? 'Change photo' : 'Upload photo' }}</span>
+                </button>
+
+                <input
+                  #photoInput
+                  id="photo"
+                  name="photo"
+                  type="file"
+                  [disabled]="saving"
+                  accept="image/*"
+                  (change)="onPhotoSelected($event)"
+                  hidden
+                />
+
+                @if (photoPreview) {
+                  <button type="button" class="photo-clear-button" (click)="clearPhoto()" [disabled]="saving" aria-label="Remove person photo">
+                    Remove
+                  </button>
+                }
+              </div>
+            </div>
+          </div>
+
+          <div class="form-group full-width">
+            <label for="fullName"> Full Name </label>
+
+            <input
+              id="fullName"
+              name="fullName"
+              [(ngModel)]="form['fullName']"
+              required
+              type="text"
+              placeholder="Enter person's full name"
+            />
+          </div>
+
+          <div class="form-group">
+            <label for="category"> Category </label>
+
+            <select id="category" name="category" [(ngModel)]="form['category']" required>
+              <option value="">Select category</option>
+              <option value="CHILD">Child</option>
+              <option value="ELDERLY">Elderly</option>
+              <option value="TRAFFICKING_VICTIM">Trafficking Victim</option>
+            </select>
+          </div>
+
+          <div class="form-group">
+            <label for="lastSeenDate"> Last Seen Date </label>
+
+            <div class="input-with-icon">
+              <svg lucideCalendarDays></svg>
+
+              <input
+                id="lastSeenDate"
+                name="lastSeenDate"
+                [(ngModel)]="form['lastSeenDate']"
+                type="date"
+              />
+            </div>
+          </div>
+
+          <div class="form-group full-width">
+            <label for="lastSeenLocation"> Last Seen Location </label>
+
+            <div class="input-with-icon">
+              <svg lucideMapPin></svg>
+
+              <input
+                id="lastSeenLocation"
+                name="lastSeenLocation"
+                [(ngModel)]="form['lastSeenLocation']"
+                required
+                type="text"
+                placeholder="Enter last known location"
+              />
+            </div>
+          </div>
+
+          <div class="form-group full-width">
+            <label for="reportingContact"> Reporting Contact </label>
+
+            <div class="input-with-icon">
+              <svg lucidePhone></svg>
+
+              <input
+                id="reportingContact"
+                name="reportingContact"
+                [(ngModel)]="form['reportingContact']"
+                required
+                type="text"
+                placeholder="Enter reporting contact"
+              />
+            </div>
+          </div>
+
+          <div class="form-group full-width">
+            <label for="caseOfficerId"> Case Officer </label>
+            <select id="caseOfficerId" name="caseOfficerId" [(ngModel)]="form['caseOfficerId']">
+              <option value="">Unassigned</option>
+              @for (officer of caseOfficers; track officer.id) {
+                <option [value]="officer.id">
+                  {{ officer.fullName }}{{ officer.station ? ' · ' + officer.station : '' }}
+                </option>
+              }
+            </select>
+          </div>
+
+          <div class="form-actions">
+            <button type="button" class="cancel-button" (click)="closeCaseForm()">Cancel</button>
+
+            <button
+              type="submit"
+              [disabled]="loading || saving || recordForm.invalid"
+              class="save-button"
+            >
+              <svg lucidePlus></svg>
+
+              {{ saving ? 'Saving...' : loading ? 'Loading records...' : 'Save Case Details' }}
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+  }
+
+</div>

@@ -1,0 +1,298 @@
+<div class="sightings-page">
+  @if (liveError) {
+    <p role="status">
+      {{ liveError }}
+      <button type="button" (click)="reload()" [disabled]="loading || saving">Refresh</button>
+    </p>
+  }
+  @if (loading) {
+    <p role="status">Loading records...</p>
+  }
+  @if (errorMessage) {
+    <p role="alert">
+      {{ errorMessage }}
+      <button type="button" (click)="reload()" [disabled]="loading || saving">Retry</button>
+    </p>
+  }
+  @if (relatedError) {
+    <p role="status">{{ relatedError }}</p>
+  }
+
+  <header class="page-header">
+    <div>
+      <span class="eyebrow"> MONITORING </span>
+
+      <h1>Sightings</h1>
+
+      <p>Review potential missing-person sightings detected by the e-TAMBUA monitoring system.</p>
+    </div>
+  </header>
+
+  <section class="summary-grid">
+    <article class="summary-card">
+      <div class="summary-icon total-icon">
+        <svg lucideCctv></svg>
+      </div>
+
+      <div>
+        <span>Total Sightings</span>
+        <strong>{{ loaded ? count() : '—' }}</strong>
+      </div>
+    </article>
+
+    <article class="summary-card">
+      <div class="summary-icon pending-icon">
+        <svg lucideClock3></svg>
+      </div>
+
+      <div>
+        <span>Pending Review</span>
+        <strong>{{ loaded ? count('PENDING') : '—' }}</strong>
+      </div>
+    </article>
+
+    <article class="summary-card">
+      <div class="summary-icon confirmed-icon">
+        <svg lucideCircleCheck></svg>
+      </div>
+
+      <div>
+        <span>Confirmed</span>
+        <strong>{{ loaded ? count('CONFIRMED') : '—' }}</strong>
+      </div>
+    </article>
+
+    <article class="summary-card">
+      <div class="summary-icon rejected-icon">
+        <svg lucideCircleX></svg>
+      </div>
+
+      <div>
+        <span>Rejected</span>
+        <strong>{{ loaded ? count('REJECTED') : '—' }}</strong>
+      </div>
+    </article>
+  </section>
+
+  <section class="records-card">
+    <div class="records-header">
+      <div>
+        <h2>Sighting Records</h2>
+
+        <p>Review potential matches associated with registered missing-person cases.</p>
+      </div>
+    </div>
+
+    <div class="toolbar">
+      <div class="search-box">
+        <svg lucideSearch></svg>
+
+        <input
+          type="text"
+          [(ngModel)]="searchTerm"
+          (ngModelChange)="filtersChanged()"
+          placeholder="Search sightings..."
+        />
+      </div>
+
+      <div class="filter-control">
+        <select (ngModelChange)="filtersChanged()" [(ngModel)]="selectedStatus">
+          <option value="ALL">All Statuses</option>
+
+          <option value="PENDING">Pending</option>
+
+          <option value="CONFIRMED">Confirmed</option>
+
+          <option value="REJECTED">Rejected</option>
+        </select>
+      </div>
+    </div>
+
+    <div class="table-wrapper">
+      <table>
+        <thead>
+          <tr>
+            <th>DETECTION</th>
+            <th>CASE</th>
+            <th>CAMERA</th>
+            <th>CONFIDENCE</th>
+            <th>DETECTED AT</th>
+            <th>STATUS</th>
+            <th>ACTION</th>
+          </tr>
+        </thead>
+
+        <tbody>
+          @for (record of displayedRecords; track record.id) {
+            <tr>
+              <td><app-evidence [snapshot]="record.frameSnapshotUrl"></app-evidence></td>
+              <td>{{ subjectName(record) }}</td>
+              <td>{{ cameraName(record.cameraId) }}</td>
+              <td>{{ confidencePercentage(record.confidenceScore) }}</td>
+              <td>{{ record.detectedAt | date: 'medium' }}</td>
+              <td>{{ record.status }}</td>
+              <td>
+                <button type="button" class="view-button" (click)="viewRecord(record)">View</button>
+              </td>
+            </tr>
+          }
+        </tbody>
+      </table>
+      @if (loaded && pageCount > 1) {
+        <div class="toolbar-actions" aria-label="Pagination">
+          <button
+            type="button"
+            class="filter-button"
+            (click)="pageIndex = pageIndex - 1"
+            [disabled]="pageIndex === 0"
+          >
+            Previous
+          </button>
+          <span
+            >Page {{ pageIndex + 1 }} of {{ pageCount }} ·
+            {{ filteredRecords.length }} records</span
+          >
+          <button
+            type="button"
+            class="filter-button"
+            (click)="pageIndex = pageIndex + 1"
+            [disabled]="pageIndex + 1 >= pageCount"
+          >
+            Next
+          </button>
+        </div>
+      }
+
+      @if (loaded && !loading && !errorMessage && !filteredRecords.length) {
+        <div class="empty-state">
+          <div class="empty-icon">
+            <svg lucideCctv></svg>
+          </div>
+
+          <h3>No sightings found</h3>
+
+          <p>
+            Potential missing-person sightings will appear here when the system detects a possible
+            match.
+          </p>
+        </div>
+      }
+    </div>
+  </section>
+
+  @if (showSightingDetails) {
+    <div class="modal-backdrop" (click)="closeSightingDetails()">
+      <div class="sighting-modal" (click)="$event.stopPropagation()">
+        <div class="modal-header">
+          <div>
+            <span class="modal-eyebrow"> SIGHTING REVIEW </span>
+
+            <h2>Sighting Details</h2>
+          </div>
+
+          <button type="button" class="close-button" (click)="closeSightingDetails()">
+            <svg lucideX></svg>
+          </button>
+        </div>
+
+        <div class="modal-body">
+          <section class="evidence-section">
+            <h3>Detection Evidence</h3>
+
+            <div class="evidence-preview">
+              <app-evidence
+                [snapshot]="selectedRecord?.frameSnapshotUrl"
+                [clip]="selectedRecord?.clipUrl"
+              ></app-evidence>
+            </div>
+          </section>
+
+          <section class="sighting-information">
+            <h3>Sighting Information</h3>
+
+            <div class="detail-list">
+              <div class="detail-row">
+                <span class="detail-label"> Case </span>
+
+                <strong>{{ subjectName(selectedRecord) }}</strong>
+              </div>
+
+              <div class="detail-row">
+                <span class="detail-label"> Confidence </span>
+
+                <strong>{{ confidencePercentage(selectedRecord?.confidenceScore) }}</strong>
+              </div>
+
+              <div class="detail-row">
+                <span class="detail-label"> Status </span>
+
+                <span class="status-badge">
+                  {{ selectedRecord?.status }}
+                </span>
+              </div>
+            </div>
+
+            <div class="detection-information">
+              <div>
+                <svg lucideCamera></svg>
+
+                <div>
+                  <span> Camera </span>
+
+                  <strong>{{ cameraName(selectedRecord?.cameraId) }}</strong>
+                </div>
+              </div>
+
+              <div>
+                <svg lucideCalendarDays></svg>
+
+                <div>
+                  <span> Detected At </span>
+
+                  <strong>{{ selectedRecord?.detectedAt | date: 'medium' }}</strong>
+                </div>
+              </div>
+            </div>
+          </section>
+        </div>
+
+        <div class="review-notice">
+          <svg lucideCctv></svg>
+
+          <p>
+            Confirm the sighting only when the evidence represents the missing person associated
+            with the case. Reject the sighting when the detection is incorrect.
+          </p>
+        </div>
+
+        <div class="modal-actions">
+          @if (errorMessage) {
+            <p role="alert">{{ errorMessage }}</p>
+          }
+
+          <button
+            type="button"
+            class="reject-button"
+            (click)="selectedRecord && changeStatus(selectedRecord, 'REJECTED')"
+            [disabled]="saving || selectedRecord?.status !== 'PENDING'"
+          >
+            <svg lucideCircleX></svg>
+
+            Reject Sighting
+          </button>
+
+          <button
+            type="button"
+            class="confirm-button"
+            (click)="selectedRecord && changeStatus(selectedRecord, 'CONFIRMED')"
+            [disabled]="saving || selectedRecord?.status !== 'PENDING'"
+          >
+            <svg lucideCheck></svg>
+
+            Confirm Sighting
+          </button>
+        </div>
+      </div>
+    </div>
+  }
+</div>

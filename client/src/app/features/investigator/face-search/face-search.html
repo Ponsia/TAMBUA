@@ -1,0 +1,238 @@
+<div class="face-search-page">
+  <header class="page-header">
+    <div>
+      <span class="eyebrow"> IDENTIFICATION </span>
+
+      <h1>Face Search</h1>
+
+      <p>Upload a photograph to search for a possible matching subject in e-TAMBUA.</p>
+    </div>
+  </header>
+
+  <section class="information-banner">
+    <div class="information-icon">
+      <svg lucideInfo></svg>
+    </div>
+
+    <div>
+      <strong> Photograph identification </strong>
+
+      <p>Use a clear photograph where the person's face is visible for identification.</p>
+    </div>
+  </section>
+
+  <section class="search-workspace">
+    <article class="upload-card">
+      <div class="card-header">
+        <div>
+          <span class="section-label"> SEARCH IMAGE </span>
+
+          <h2>Upload Photograph</h2>
+        </div>
+      </div>
+
+      <div class="upload-body">
+        @if (!previewUrl) {
+          <label for="face-photo" class="upload-area">
+            <div class="upload-icon">
+              <svg lucideUpload></svg>
+            </div>
+
+            <h3>Select a photograph</h3>
+
+            <p>Choose an image containing a clear view of the person's face.</p>
+
+            <span class="choose-button">
+              <svg lucideImage></svg>
+              Choose Image
+            </span>
+          </label>
+        }
+
+        @if (previewUrl) {
+          <div class="image-preview">
+            <img [src]="previewUrl" alt="Selected photograph" />
+
+            <button type="button" class="remove-image" title="Remove image" (click)="removeImage()">
+              <svg lucideX></svg>
+            </button>
+          </div>
+
+          <div class="file-information">
+            <div class="file-icon">
+              <svg lucideImage></svg>
+            </div>
+
+            <div>
+              <strong>
+                {{ selectedFile?.name }}
+              </strong>
+
+              <span>{{ uploadedPhotoUrl ? 'Uploaded' : 'Ready to search' }}</span>
+            </div>
+          </div>
+        }
+
+        <input
+          id="face-photo"
+          type="file"
+          [disabled]="isSearching"
+          accept="image/jpeg,image/png,image/webp"
+          hidden
+          (change)="onFileSelected($event)"
+        />
+
+        @if (errorMessage) {
+          <div class="error-message">
+            <svg lucideTriangleAlert></svg>
+
+            <span>
+              {{ errorMessage }}
+            </span>
+          </div>
+        }
+
+        <button
+          type="button"
+          class="search-button"
+          [disabled]="!selectedFile || isSearching"
+          (click)="searchPhoto()"
+        >
+          @if (!isSearching) {
+            <svg lucideSearch></svg>
+            Search Photograph
+          }
+
+          @if (isSearching) {
+            <svg lucideRefreshCw class="spin"></svg>
+
+            Searching...
+          }
+        </button>
+      </div>
+    </article>
+
+    <article class="result-card">
+      <div class="card-header">
+        <div>
+          <span class="section-label"> IDENTIFICATION RESULT </span>
+
+          <h2>Search Result</h2>
+        </div>
+      </div>
+
+      @if (!searchResult && !isSearching) {
+        <div class="result-empty">
+          <div class="result-empty-icon">
+            <svg lucideScanFace></svg>
+          </div>
+
+          <h3>No search performed</h3>
+
+          <p>Upload a photograph and start a search. The identification result will appear here.</p>
+        </div>
+      }
+
+      @if (isSearching) {
+        <div class="result-empty">
+          <div class="result-empty-icon searching-icon">
+            <svg lucideRefreshCw class="spin"></svg>
+          </div>
+
+          <h3>Searching...</h3>
+
+          <p>e-TAMBUA is checking the submitted photograph.</p>
+        </div>
+      }
+
+      @if (searchResult && searchResult.outcome === 'MATCH_FOUND') {
+        <div class="match-result">
+          <div class="result-status success">
+            <svg lucideCircleCheck></svg>
+
+            <div>
+              <span>SEARCH OUTCOME</span>
+              <strong>Possible Match Found</strong>
+            </div>
+          </div>
+
+          @if (matchedSubject?.photoUrl) {
+            <div class="image-preview">
+              <img [src]="matchedSubject?.photoUrl" alt="Enrolled photograph of the matched subject" />
+            </div>
+          }
+
+          <div class="result-details">
+            <div class="result-item">
+              <span>Name</span>
+
+              <strong>
+                {{ matchedSubject?.fullName || '—' }}
+              </strong>
+            </div>
+
+            <div class="result-item">
+              <span>Record</span>
+
+              <strong>
+                {{ subjectTypeLabel }}
+              </strong>
+            </div>
+
+            <div class="result-item">
+              <span>Confidence</span>
+
+              <strong>
+                {{ confidencePercentage(searchResult.confidenceScore) }}
+              </strong>
+            </div>
+
+            <div class="result-item">
+              <span>Status</span>
+
+              <strong>
+                {{ matchedSubject?.status || '—' }}
+              </strong>
+            </div>
+          </div>
+
+          <p>
+            A possible match is an investigative lead, not an identification. Confirm it through
+            the case record before acting on it.
+          </p>
+
+          <div class="search-log">
+            Search Log:
+            <strong>
+              {{ searchResult.searchLogId }}
+            </strong>
+          </div>
+        </div>
+      }
+
+      @if (searchResult && searchResult.outcome === 'NO_MATCH') {
+        <div class="no-match-result">
+          <div class="no-match-icon">
+            <svg lucideSearch></svg>
+          </div>
+
+          <h3>No Match Found</h3>
+
+          <p>No matching subject was identified for the submitted photograph.</p>
+
+          <div class="search-log">
+            Search Log:
+            <strong>
+              {{ searchResult.searchLogId }}
+            </strong>
+          </div>
+
+          <button type="button" class="search-again-button" (click)="searchAgain()">
+            <svg lucideRefreshCw></svg>
+            Search Another Photo
+          </button>
+        </div>
+      }
+    </article>
+  </section>
+</div>

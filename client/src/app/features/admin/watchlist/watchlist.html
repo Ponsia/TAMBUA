@@ -1,0 +1,193 @@
+<div class="watchlist-page">
+  @if (loading) {
+    <p role="status">Loading records...</p>
+  }
+  @if (errorMessage) {
+    <p role="alert">
+      {{ errorMessage }}
+      <button type="button" (click)="reload()" [disabled]="loading || saving">Retry</button>
+    </p>
+  }
+  @if (relatedError) {
+    <p role="status">{{ relatedError }}</p>
+  }
+
+  <header class="page-header">
+    <div>
+      <h1>Watchlist</h1>
+
+      <p>Monitor people currently tracked by the e-TAMBUA recognition system.</p>
+    </div>
+  </header>
+
+  <section class="summary-grid">
+    <article class="summary-card">
+      <div class="summary-icon">
+        <svg lucideUsers></svg>
+      </div>
+
+      <div class="summary-info">
+        <span>Total Entries</span>
+        <strong>{{ loaded ? count() : '—' }}</strong>
+        <small>All watchlist records</small>
+      </div>
+    </article>
+
+    <article class="summary-card">
+      <div class="summary-icon">
+        <svg lucideShieldCheck></svg>
+      </div>
+
+      <div class="summary-info">
+        <span>Active</span>
+        <strong>{{ loaded ? count('ACTIVE') : '—' }}</strong>
+        <small>Currently monitored</small>
+      </div>
+    </article>
+
+    <article class="summary-card">
+      <div class="summary-icon">
+        <svg lucideShieldAlert></svg>
+      </div>
+
+      <div class="summary-info">
+        <span>High Risk</span>
+        <strong>{{ loaded ? riskCount() : '—' }}</strong>
+        <small>High-priority subjects</small>
+      </div>
+    </article>
+
+    <article class="summary-card">
+      <div class="summary-icon">
+        <svg lucideCircleX></svg>
+      </div>
+
+      <div class="summary-info">
+        <span>Removed</span>
+        <strong>{{ loaded ? count('REMOVED') : '—' }}</strong>
+        <small>No longer monitored</small>
+      </div>
+    </article>
+  </section>
+
+  <section class="records-card">
+    <div class="records-header">
+      <div>
+        <h2>Watchlist Records</h2>
+
+        <p>Browse and monitor subjects registered on the watchlist.</p>
+      </div>
+
+      <span class="record-count"> {{ filteredRecords.length }} entries </span>
+    </div>
+
+    <div class="records-toolbar">
+      <div class="search-field">
+        <svg lucideSearch></svg>
+
+        <input
+          [(ngModel)]="searchTerm"
+          (ngModelChange)="filtersChanged()"
+          type="text"
+          placeholder="Search watchlist..."
+        />
+      </div>
+
+      <div class="toolbar-actions">
+        <select
+          [(ngModel)]="selectedStatus"
+          (ngModelChange)="filtersChanged()"
+          aria-label="Filter by status"
+        >
+          <option value="ALL">All statuses</option>
+          <option value="ACTIVE">Active</option>
+          <option value="REMOVED">Removed</option>
+        </select>
+
+        <select
+          [(ngModel)]="selectedRisk"
+          (ngModelChange)="filtersChanged()"
+          aria-label="Filter by risk level"
+        >
+          <option value="ALL">All risk levels</option>
+          <option value="HIGH">High</option>
+          <option value="MEDIUM">Medium</option>
+          <option value="LOW">Low</option>
+        </select>
+
+        <button type="button" class="filter-button" (click)="filtersChanged()">
+          <svg lucideSlidersHorizontal></svg>
+          Filters
+        </button>
+      </div>
+    </div>
+
+    <div class="table-container">
+      <table>
+        <thead>
+          <tr>
+            <th>PERSON</th>
+            <th>REASON</th>
+            <th>RISK LEVEL</th>
+            <th>STATUS</th>
+            <th>ADDED BY</th>
+            <th>DATE ADDED</th>
+          </tr>
+        </thead>
+
+        <tbody>
+          @for (record of displayedRecords; track record.id) {
+            <tr>
+              <td>{{ record.fullName }}</td>
+              <td>{{ record.reason }}</td>
+              <td>{{ record.riskLevel }}</td>
+              <td>{{ record.status }}</td>
+              <td>{{ record.addedById || '—' }}</td>
+              <td>{{ record.createdAt | date: 'medium' }}</td>
+            </tr>
+          } @empty {
+            @if (loaded && !loading && !errorMessage) {
+              <tr class="empty-row">
+                <td colspan="6">
+                  <div class="empty-state">
+                    <div class="empty-icon">
+                      <svg lucideShieldAlert></svg>
+                    </div>
+
+                    <h3>No watchlist entries</h3>
+
+                    <p>Watchlist records added to e-TAMBUA will appear here.</p>
+                  </div>
+                </td>
+              </tr>
+            }
+          }
+        </tbody>
+      </table>
+      @if (loaded && pageCount > 1) {
+        <div class="toolbar-actions" aria-label="Pagination">
+          <button
+            type="button"
+            class="filter-button"
+            (click)="pageIndex = pageIndex - 1"
+            [disabled]="pageIndex === 0"
+          >
+            Previous
+          </button>
+          <span
+            >Page {{ pageIndex + 1 }} of {{ pageCount }} ·
+            {{ filteredRecords.length }} records</span
+          >
+          <button
+            type="button"
+            class="filter-button"
+            (click)="pageIndex = pageIndex + 1"
+            [disabled]="pageIndex + 1 >= pageCount"
+          >
+            Next
+          </button>
+        </div>
+      }
+    </div>
+  </section>
+</div>

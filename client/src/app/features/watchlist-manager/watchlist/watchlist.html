@@ -1,0 +1,408 @@
+<div class="missing-persons-page">
+  @if (successMessage) {
+    <div class="toast toast--success" role="status">
+      <svg lucidePlus></svg>
+      <span>{{ successMessage }}</span>
+    </div>
+  }
+
+  @if (loading) {
+    <p role="status">Loading records...</p>
+  }
+  @if (errorMessage) {
+    <p role="alert">
+      {{ errorMessage }}
+      <button type="button" (click)="reload()" [disabled]="loading || saving">Retry</button>
+    </p>
+  }
+  @if (relatedError) {
+    <p role="status">{{ relatedError }}</p>
+  }
+
+  <header class="page-header">
+    <div>
+      <span class="eyebrow"> CASE MANAGEMENT </span>
+
+      <h1>Watchlist</h1>
+
+      <p>Register and manage watchlist person information.</p>
+    </div>
+
+    <button
+      type="button"
+      class="primary-button"
+      (click)="openAddCase()"
+      [disabled]="!canManage || saving"
+    >
+      <svg lucidePlus></svg>
+
+      <span> Add Watchlist Person </span>
+    </button>
+  </header>
+
+  <section class="summary-grid">
+    <article class="summary-card">
+      <div class="summary-icon">
+        <svg lucideUserSearch></svg>
+      </div>
+
+      <div>
+        <span>Total Records</span>
+        <strong>{{ loaded ? count() : '—' }}</strong>
+      </div>
+    </article>
+
+    <article class="summary-card">
+      <div class="summary-icon open-icon">
+        <svg lucideSearch></svg>
+      </div>
+
+      <div>
+        <span>Active</span>
+        <strong>{{ loaded ? count('ACTIVE') : '—' }}</strong>
+      </div>
+    </article>
+
+    <article class="summary-card">
+      <div class="summary-icon found-icon">
+        <svg lucideUserSearch></svg>
+      </div>
+
+      <div>
+        <span>Removed</span>
+        <strong>{{ loaded ? count('REMOVED') : '—' }}</strong>
+      </div>
+    </article>
+
+    <article class="summary-card">
+      <div class="summary-icon closed-icon">
+        <svg lucideUserSearch></svg>
+      </div>
+
+      <div>
+        <span>High risk</span>
+        <strong>{{ loaded ? highRiskCount : '—' }}</strong>
+      </div>
+    </article>
+  </section>
+
+  <section class="records-card">
+    <div class="records-header">
+      <div>
+        <h2>Watchlist Records</h2>
+
+        <p>View and manage registered watchlist records.</p>
+      </div>
+    </div>
+
+    <div class="toolbar">
+      <div class="search-box">
+        <svg lucideSearch></svg>
+
+        <input
+          type="text"
+          [(ngModel)]="searchTerm"
+          (ngModelChange)="filtersChanged()"
+          placeholder="Search by name or reason..."
+        />
+      </div>
+
+      <div class="filter-control">
+        <svg lucideSlidersHorizontal></svg>
+
+        <select
+          (ngModelChange)="filtersChanged()"
+          [(ngModel)]="selectedStatus"
+          (change)="onStatusChange()"
+        >
+          <option value="ALL">All Statuses</option>
+          <option value="ACTIVE">Active</option>
+          <option value="REMOVED">Removed</option>
+        </select>
+      </div>
+
+      <div class="filter-control">
+        <select (ngModelChange)="filtersChanged()" [(ngModel)]="selectedCategory">
+          <option value="ALL">All Risk Levels</option>
+          <option value="LOW">Low</option>
+          <option value="MEDIUM">Medium</option>
+          <option value="HIGH">High</option>
+        </select>
+      </div>
+    </div>
+
+    <div class="table-wrapper">
+      <table>
+        <thead>
+          <tr>
+            <th>PERSON</th>
+            <th>RISK LEVEL</th>
+            <th>REASON</th>
+            <th>ADDED</th>
+            <th>STATUS</th>
+            <th>ACTION</th>
+          </tr>
+        </thead>
+
+        <tbody>
+          @for (record of displayedRecords; track record.id) {
+            <tr>
+              <td>
+                <div class="person-cell">
+                  @if (record.photo_url) {
+                    <img
+                      class="person-avatar"
+                      [src]="record.photo_url"
+                      [alt]="record.full_name"
+                      loading="lazy"
+                      (error)="onPhotoError($event)"
+                    />
+                  } @else {
+                    <div class="person-avatar person-avatar--placeholder">
+                      {{ initials(record.full_name) }}
+                    </div>
+                  }
+                  <span class="person-name">{{ record.full_name }}</span>
+                </div>
+              </td>
+              <td>{{ record.risk_level }}</td>
+              <td>{{ record.reason || '—' }}</td>
+              <td>{{ (record.created_at | date: 'mediumDate') || '—' }}</td>
+              <td>
+                <span class="status-pill" [attr.data-status]="record.status">
+                  {{ record.status }}
+                </span>
+              </td>
+              <td>
+                @if (canManage) {
+                  <div class="action-buttons">
+                    <button
+                      type="button"
+                      class="view-button"
+                      (click)="openForm(record)"
+                      [disabled]="saving || deletingId === record.id"
+                    >
+                      Edit
+                    </button>
+
+                    @if (record.status === 'ACTIVE') {
+                      <button
+                        type="button"
+                        class="delete-button"
+                        (click)="askDelete(record)"
+                        [disabled]="saving || deletingId === record.id"
+                      >
+                        Remove
+                      </button>
+                    }
+                  </div>
+                }
+              </td>
+            </tr>
+          }
+        </tbody>
+      </table>
+
+      @if (loaded && pageCount > 1) {
+        <div class="toolbar-actions" aria-label="Pagination">
+          <button
+            type="button"
+            class="filter-button"
+            (click)="pageIndex = pageIndex - 1"
+            [disabled]="pageIndex === 0"
+          >
+            Previous
+          </button>
+          <span
+            >Page {{ pageIndex + 1 }} of {{ pageCount }} ·
+            {{ filteredRecords.length }} records</span
+          >
+          <button
+            type="button"
+            class="filter-button"
+            (click)="pageIndex = pageIndex + 1"
+            [disabled]="pageIndex + 1 >= pageCount"
+          >
+            Next
+          </button>
+        </div>
+      }
+
+      @if (loaded && !loading && !errorMessage && !filteredRecords.length) {
+        <div class="empty-state">
+          <div class="empty-icon">
+            <svg lucideUserSearch></svg>
+          </div>
+
+          <h3>No watchlist persons</h3>
+
+          <p>Watchlist records will appear here once they have been registered.</p>
+
+          <button
+            type="button"
+            class="empty-add-button"
+            (click)="openAddCase()"
+            [disabled]="!canManage || saving"
+          >
+            <svg lucidePlus></svg>
+
+            Add Watchlist Person
+          </button>
+        </div>
+      }
+    </div>
+  </section>
+
+  @if (showCaseForm) {
+    <div class="modal-backdrop" (click)="closeCaseForm()">
+      <div class="case-modal" (click)="$event.stopPropagation()">
+        <div class="modal-header">
+          <div>
+            <h2>
+              {{ editingId ? 'Edit Watchlist Person' : 'Add Watchlist Person' }}
+            </h2>
+
+            <p>Register a new watchlist person.</p>
+          </div>
+
+          <button type="button" class="close-button" (click)="closeCaseForm()">
+            <svg lucideX></svg>
+          </button>
+        </div>
+
+        @if (errorMessage) {
+          <p role="alert">{{ errorMessage }}</p>
+        }
+        <form class="case-form" #recordForm="ngForm" (ngSubmit)="recordForm.valid && saveRecord()">
+          <!-- Photo upload field -->
+          <div class="form-group full-width">
+            <label for="photo"> Person Photo </label>
+
+            <div class="photo-field">
+              <div class="photo-preview">
+                @if (photoPreview) {
+                  <img [src]="photoPreview" alt="Person preview" />
+                } @else {
+                  <svg lucideImage></svg>
+                }
+              </div>
+
+              <div class="photo-actions">
+                <button type="button" class="photo-upload-button" (click)="photoInput.click()" [disabled]="saving">
+                  <svg lucideUpload></svg>
+                  <span>{{ photoPreview ? 'Change photo' : 'Upload photo' }}</span>
+                </button>
+
+                <input
+                  #photoInput
+                  id="photo"
+                  name="photo"
+                  type="file"
+                  [disabled]="saving"
+                  accept="image/*"
+                  (change)="onPhotoSelected($event)"
+                  hidden
+                />
+
+                @if (photoPreview) {
+                  <button type="button" class="photo-clear-button" (click)="clearPhoto()" [disabled]="saving" aria-label="Remove person photo">
+                    Remove
+                  </button>
+                }
+              </div>
+            </div>
+          </div>
+
+          <div class="form-group full-width">
+            <label for="fullName"> Full Name </label>
+
+            <input
+              id="fullName"
+              name="fullName"
+              [(ngModel)]="form['fullName']"
+              required
+              [readonly]="editingId !== null"
+              type="text"
+              placeholder="Enter person's full name"
+            />
+            @if (editingId !== null) {
+              <small>A watchlist entry's name cannot be changed. Remove it and add a new entry instead.</small>
+            }
+          </div>
+
+          <div class="form-group">
+            <label for="riskLevel">Risk level</label>
+            <select id="riskLevel" name="riskLevel" [(ngModel)]="form.riskLevel" required>
+              <option value="">Select risk level</option>
+              <option value="LOW">Low</option>
+              <option value="MEDIUM">Medium</option>
+              <option value="HIGH">High</option>
+            </select>
+          </div>
+          <div class="form-group full-width">
+            <label for="reason">Reason for watchlisting</label>
+            <input id="reason" name="reason" [(ngModel)]="form.reason" required
+              type="text" placeholder="Enter the reason for watchlisting" />
+          </div>
+
+          <div class="form-actions">
+            <button type="button" class="cancel-button" (click)="closeCaseForm()">Cancel</button>
+
+            <button
+              type="submit"
+              [disabled]="loading || saving || recordForm.invalid"
+              class="save-button"
+            >
+              <svg lucidePlus></svg>
+
+              {{ saving ? 'Saving...' : loading ? 'Loading records...' : 'Save Person Details' }}
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+  }
+
+  @if (pendingDelete) {
+    <div class="modal-backdrop" (click)="cancelDelete()">
+      <div class="confirm-modal" (click)="$event.stopPropagation()">
+        <div class="confirm-icon">
+          <svg lucideTrash></svg>
+        </div>
+
+        <h2>Remove this watchlist person?</h2>
+
+        <p>
+          This will mark
+          <strong>{{ pendingDelete.full_name }}</strong>
+          as removed from the watchlist. The record and photo will be retained.
+        </p>
+
+        @if (errorMessage) {
+          <p role="alert" class="confirm-error">{{ errorMessage }}</p>
+        }
+
+        <div class="confirm-actions">
+          <button
+            type="button"
+            class="cancel-button"
+            (click)="cancelDelete()"
+            [disabled]="deletingId !== null"
+          >
+            Cancel
+          </button>
+
+          <button
+            type="button"
+            class="delete-confirm-button"
+            (click)="confirmDelete()"
+            [disabled]="deletingId !== null"
+          >
+            <svg lucideTrash></svg>
+            {{ deletingId !== null ? 'Removing...' : 'Remove' }}
+          </button>
+        </div>
+      </div>
+    </div>
+  }
+</div>

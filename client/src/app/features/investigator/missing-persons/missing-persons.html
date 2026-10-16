@@ -1,0 +1,339 @@
+<div class="missing-persons-page">
+  @if (loading) {
+    <p role="status">Loading records...</p>
+  }
+  @if (errorMessage) {
+    <p role="alert">
+      {{ errorMessage }}
+      <button type="button" (click)="reload()" [disabled]="loading || saving">Retry</button>
+    </p>
+  }
+  @if (relatedError) {
+    <p role="status">{{ relatedError }}</p>
+  }
+
+  <header class="page-header">
+    <div>
+      <span class="eyebrow"> INVESTIGATION </span>
+
+      <h1>Missing Persons</h1>
+
+      <p>Review missing-person cases and manage investigation status.</p>
+    </div>
+  </header>
+
+  <section class="summary-grid">
+    <button type="button" class="summary-card" (click)="selectedStatus = 'ALL'; onStatusChange()">
+      <span>Total Cases</span>
+      <strong>{{ loaded ? count() : '—' }}</strong>
+    </button>
+
+    <button
+      type="button"
+      class="summary-card open-card"
+      (click)="selectedStatus = 'OPEN'; onStatusChange()"
+    >
+      <span>Open</span>
+      <strong>{{ loaded ? count('OPEN') : '—' }}</strong>
+    </button>
+
+    <button
+      type="button"
+      class="summary-card found-card"
+      (click)="selectedStatus = 'FOUND'; onStatusChange()"
+    >
+      <span>Found</span>
+      <strong>{{ loaded ? count('FOUND') : '—' }}</strong>
+    </button>
+
+    <button
+      type="button"
+      class="summary-card closed-card"
+      (click)="selectedStatus = 'CLOSED'; onStatusChange()"
+    >
+      <span>Closed</span>
+      <strong>{{ loaded ? count('CLOSED') : '—' }}</strong>
+    </button>
+  </section>
+
+  <section class="records-card">
+    <div class="records-header">
+      <div>
+        <span class="section-label"> CASE RECORDS </span>
+
+        <h2>Missing Person Cases</h2>
+      </div>
+    </div>
+
+    <div class="filters">
+      <div class="search-box">
+        <svg lucideSearch></svg>
+
+        <input
+          type="text"
+          [(ngModel)]="searchTerm"
+          (ngModelChange)="filtersChanged()"
+          placeholder="Search missing person..."
+        />
+      </div>
+
+      <div class="filter-box">
+        <svg lucideSlidersHorizontal></svg>
+
+        <select
+          (ngModelChange)="filtersChanged()"
+          [(ngModel)]="selectedStatus"
+          (change)="onStatusChange()"
+        >
+          <option value="ALL">All Statuses</option>
+
+          <option value="OPEN">Open</option>
+
+          <option value="FOUND">Found</option>
+
+          <option value="CLOSED">Closed</option>
+        </select>
+      </div>
+
+      <div class="filter-box">
+        <svg lucideUserSearch></svg>
+
+        <select (ngModelChange)="filtersChanged()" [(ngModel)]="selectedCategory">
+          <option value="ALL">All Categories</option>
+
+          <option value="CHILD">Child</option>
+
+          <option value="ELDERLY">Elderly</option>
+
+          <option value="TRAFFICKING_VICTIM">Trafficking Victim</option>
+        </select>
+      </div>
+    </div>
+
+    <div class="table-wrapper">
+      <table>
+        <thead>
+          <tr>
+            <th>PERSON</th>
+            <th>CATEGORY</th>
+            <th>LAST SEEN LOCATION</th>
+            <th>LAST SEEN DATE</th>
+            <th>STATUS</th>
+            <th>ACTION</th>
+          </tr>
+        </thead>
+
+        <tbody>
+          @for (record of displayedRecords; track record.id) {
+            <tr>
+              <td>{{ record.fullName }}</td>
+              <td>{{ record.category }}</td>
+              <td>{{ record.lastSeenLocation }}</td>
+              <td>{{ (record.lastSeenDate | date: 'mediumDate') || '—' }}</td>
+              <td>{{ record.status }}</td>
+              <td>
+                <button type="button" class="view-button" (click)="viewRecord(record)">View</button>
+                <a
+                  class="view-button"
+                  routerLink="/investigator/sightings"
+                  [queryParams]="{ subjectId: record.id }"
+                  >Sightings</a
+                >
+                @if (canManage) {
+                  <button
+                    type="button"
+                    class="view-button"
+                    (click)="openForm(record)"
+                    [disabled]="saving"
+                  >
+                    Edit
+                  </button>
+                }
+              </td>
+            </tr>
+          }
+        </tbody>
+      </table>
+      @if (loaded && pageCount > 1) {
+        <div class="toolbar-actions" aria-label="Pagination">
+          <button
+            type="button"
+            class="filter-button"
+            (click)="pageIndex = pageIndex - 1"
+            [disabled]="pageIndex === 0"
+          >
+            Previous
+          </button>
+          <span
+            >Page {{ pageIndex + 1 }} of {{ pageCount }} ·
+            {{ filteredRecords.length }} records</span
+          >
+          <button
+            type="button"
+            class="filter-button"
+            (click)="pageIndex = pageIndex + 1"
+            [disabled]="pageIndex + 1 >= pageCount"
+          >
+            Next
+          </button>
+        </div>
+      }
+
+      @if (loaded && !loading && !errorMessage && !filteredRecords.length) {
+        <div class="empty-state">
+          <div class="empty-icon">
+            <svg lucideUserSearch></svg>
+          </div>
+
+          <h3>No missing-person cases</h3>
+
+          <p>Cases available for investigation will appear here.</p>
+        </div>
+      }
+    </div>
+  </section>
+
+  @if (selectedCase) {
+    <div class="modal-backdrop" (click)="closeCaseDetails()">
+      <div class="case-modal" (click)="$event.stopPropagation()">
+        <div class="modal-header">
+          <div>
+            <span class="section-label"> CASE DETAILS </span>
+
+            <h2>
+              {{ selectedCase.fullName }}
+            </h2>
+          </div>
+
+          <button type="button" class="close-button" (click)="closeCaseDetails()">
+            <svg lucideX></svg>
+          </button>
+        </div>
+
+        <div class="modal-body">
+          <div class="person-header">
+            <div class="person-avatar">
+              <svg lucideUserSearch></svg>
+            </div>
+
+            <div>
+              <h3>
+                {{ selectedCase.fullName }}
+              </h3>
+
+              <span
+                class="status-badge"
+                [class.status-open]="selectedCase.status === 'OPEN'"
+                [class.status-found]="selectedCase.status === 'FOUND'"
+                [class.status-closed]="selectedCase.status === 'CLOSED'"
+              >
+                {{ selectedCase.status }}
+              </span>
+            </div>
+          </div>
+
+          <div class="details-grid">
+            <div class="detail-item">
+              <span>Category</span>
+              <strong>
+                {{ selectedCase.category }}
+              </strong>
+            </div>
+
+            <div class="detail-item">
+              <span>Last Seen Location</span>
+
+              <strong>
+                <svg lucideMapPin></svg>
+                {{ selectedCase.lastSeenLocation }}
+              </strong>
+            </div>
+
+            <div class="detail-item">
+              <span>Last Seen Date</span>
+
+              <strong>
+                <svg lucideCalendarDays></svg>
+                {{ selectedCase.lastSeenDate }}
+              </strong>
+            </div>
+
+            <div class="detail-item">
+              <span>Reporting Contact</span>
+
+              <strong>
+                <svg lucidePhone></svg>
+                {{ selectedCase.reportingContact }}
+              </strong>
+            </div>
+
+            <div class="detail-item">
+              <span>Case Officer</span>
+
+              <strong>
+                {{
+                  !selectedCase.caseOfficerId
+                    ? 'Not assigned'
+                    : selectedCase.caseOfficerId === auth.getCurrentUser()?.id
+                      ? 'You'
+                      : 'Another investigator'
+                }}
+              </strong>
+            </div>
+
+            <div class="detail-item">
+              <span>Case Created</span>
+
+              <strong>
+                {{ selectedCase.createdAt }}
+              </strong>
+            </div>
+          </div>
+        </div>
+
+        <div class="modal-footer">
+          @if (errorMessage) {
+            <p role="alert">{{ errorMessage }}</p>
+          }
+
+          @if (selectedCase.status === 'OPEN') {
+            <div class="transition-info">
+              Current transition:
+              <strong>OPEN → FOUND</strong>
+            </div>
+
+            <button type="button" class="found-button" (click)="markAsFound()" [disabled]="saving">
+              <svg lucideCircleCheck></svg>
+              Mark as Found
+            </button>
+          }
+
+          @if (selectedCase.status === 'FOUND') {
+            <div class="transition-info">
+              Current transition:
+              <strong>FOUND → CLOSED</strong>
+            </div>
+
+            <button
+              type="button"
+              class="close-case-button"
+              (click)="closeCase()"
+              [disabled]="saving"
+            >
+              <svg lucideFolderCheck></svg>
+              Close Case
+            </button>
+          }
+
+          @if (selectedCase.status === 'CLOSED') {
+            <div class="completed-message">
+              <svg lucideCircleCheck></svg>
+
+              <span> This investigation is closed. </span>
+            </div>
+          }
+        </div>
+      </div>
+    </div>
+  }
+</div>

@@ -1,0 +1,244 @@
+<section class="users-page">
+  @if (errorMessage) {
+    <p role="alert">
+      {{ errorMessage }}
+      <button type="button" class="filter-button" (click)="reload()" [disabled]="loading">Retry</button>
+    </p>
+  }
+
+  <div class="page-header">
+    <div class="page-heading">
+      <h2>Users</h2>
+
+      <p>Manage system users and their access to e-TAMBUA.</p>
+    </div>
+
+    <button type="button" class="primary-button" (click)="openCreate()" [disabled]="saving">
+      <svg lucidePlus></svg>
+      <span>Add User</span>
+    </button>
+  </div>
+
+  @if (mode) {
+    <div class="records-card user-form-card">
+      <div class="records-header">
+        <div>
+          <h3>
+            {{ mode === 'create' ? 'Add User' : mode === 'edit' ? 'Edit User' : 'Reset Password' }}
+          </h3>
+          <p>
+            @if (mode === 'password') {
+              Set a new password for {{ editing?.fullName }} ({{ editing?.email }}).
+            } @else {
+              Each officer has exactly one role.
+            }
+          </p>
+        </div>
+      </div>
+
+      <form class="user-form" (ngSubmit)="save()">
+        @if (mode !== 'password') {
+          <label
+            >Full name<input name="fullName" [(ngModel)]="form.fullName" required maxlength="255"
+          /></label>
+          <label
+            >Email
+            <input
+              name="email"
+              type="email"
+              [(ngModel)]="form.email"
+              [readonly]="mode === 'edit'"
+              required
+              autocomplete="off"
+          /></label>
+          <label
+            >Role
+            <select name="role" [(ngModel)]="form.role" required>
+              <option value="" disabled>Select a role</option>
+              @for (role of roles; track role) {
+                <option [value]="role">{{ roleLabels[role] }}</option>
+              }
+            </select>
+          </label>
+          <label>Station<input name="station" [(ngModel)]="form.station" maxlength="255" /></label>
+        }
+        @if (mode !== 'edit') {
+          <label
+            >Password
+            <input
+              name="password"
+              type="password"
+              [(ngModel)]="form.password"
+              required
+              minlength="8"
+              autocomplete="new-password"
+          /></label>
+          <label
+            >Confirm password
+            <input
+              name="confirm"
+              type="password"
+              [(ngModel)]="form.confirm"
+              required
+              autocomplete="new-password"
+          /></label>
+        }
+        @if (formError) {
+          <p role="alert" class="form-error">{{ formError }}</p>
+        }
+        <div class="form-actions">
+          <button type="submit" class="primary-button" [disabled]="saving">
+            {{ saving ? 'Saving...' : mode === 'create' ? 'Create User' : 'Save' }}
+          </button>
+          <button type="button" class="filter-button" (click)="closeForm()" [disabled]="saving">
+            Cancel
+          </button>
+        </div>
+      </form>
+    </div>
+  }
+
+  <div class="stats-grid">
+    <div class="stat-card">
+      <div class="stat-icon">
+        <svg lucideUsers></svg>
+      </div>
+
+      <div class="stat-content">
+        <span class="stat-label">Total Users</span>
+        <strong>{{ loaded ? users.length : '—' }}</strong>
+      </div>
+    </div>
+
+    <div class="stat-card">
+      <div class="stat-icon active">
+        <svg lucideUserCheck></svg>
+      </div>
+
+      <div class="stat-content">
+        <span class="stat-label">Active Users</span>
+        <strong>{{ loaded ? activeCount : '—' }}</strong>
+      </div>
+    </div>
+
+    <div class="stat-card">
+      <div class="stat-icon admin">
+        <svg lucideShieldCheck></svg>
+      </div>
+
+      <div class="stat-content">
+        <span class="stat-label">Administrators</span>
+        <strong>{{ loaded ? adminCount : '—' }}</strong>
+      </div>
+    </div>
+
+    <div class="stat-card">
+      <div class="stat-icon new-user">
+        <svg lucideUserPlus></svg>
+      </div>
+
+      <div class="stat-content">
+        <span class="stat-label">New (30 days)</span>
+        <strong>{{ loaded ? newCount : '—' }}</strong>
+      </div>
+    </div>
+  </div>
+
+  <div class="records-card">
+    <div class="records-header">
+      <div>
+        <h3>User Records</h3>
+
+        <p>View and manage registered system users.</p>
+      </div>
+    </div>
+
+    <div class="toolbar">
+      <div class="search-box">
+        <svg lucideSearch></svg>
+
+        <input
+          type="text"
+          [(ngModel)]="searchTerm"
+          placeholder="Search users..."
+          aria-label="Search users"
+        />
+      </div>
+
+      <select class="filter-button" [(ngModel)]="selectedRole" aria-label="Filter users by role">
+        <option value="ALL">All roles</option>
+        @for (role of roles; track role) {
+          <option [value]="role">{{ roleLabels[role] }}</option>
+        }
+      </select>
+    </div>
+
+    <div class="table-container">
+      <table>
+        <thead>
+          <tr>
+            <th>USER</th>
+            <th>EMAIL</th>
+            <th>ROLE</th>
+            <th>STATION</th>
+            <th>STATUS</th>
+            <th>CREATED</th>
+            <th>ACTION</th>
+          </tr>
+        </thead>
+
+        <tbody>
+          @for (user of filteredUsers; track user.id) {
+            <tr>
+              <td>{{ user.fullName }}</td>
+              <td>{{ user.email }}</td>
+              <td>{{ roleLabels[user.role] }}</td>
+              <td>{{ user.station || '—' }}</td>
+              <td>{{ user.isActive ? 'Active' : 'Deactivated' }}</td>
+              <td>{{ user.createdAt | date: 'mediumDate' }}</td>
+              <td class="row-actions">
+                <button type="button" class="filter-button" (click)="openEdit(user)" [disabled]="saving">
+                  Edit
+                </button>
+                <button
+                  type="button"
+                  class="filter-button"
+                  (click)="openPassword(user)"
+                  [disabled]="saving"
+                >
+                  Reset password
+                </button>
+                @if (user.id !== currentUserId) {
+                  <button
+                    type="button"
+                    class="filter-button"
+                    (click)="toggleActive(user)"
+                    [disabled]="saving"
+                  >
+                    {{ user.isActive ? 'Deactivate' : 'Reactivate' }}
+                  </button>
+                }
+              </td>
+            </tr>
+          } @empty {
+            <tr>
+              <td colspan="7">
+                <div class="empty-state">
+                  <div class="empty-icon">
+                    <svg lucideUsers></svg>
+                  </div>
+
+                  <h4>{{ loading ? 'Loading users...' : 'No users found' }}</h4>
+
+                  @if (!loading) {
+                    <p>Adjust the search or add a user account.</p>
+                  }
+                </div>
+              </td>
+            </tr>
+          }
+        </tbody>
+      </table>
+    </div>
+  </div>
+</section>

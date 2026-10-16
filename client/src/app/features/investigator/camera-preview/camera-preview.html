@@ -1,0 +1,261 @@
+<div class="camera-preview-page">
+
+  <!-- ============================================================
+       Page header
+       ============================================================ -->
+  <header class="page-header">
+    <span class="eyebrow">INVESTIGATOR · LIVE SURVEILLANCE</span>
+    <h1>Camera Preview</h1>
+    <p>Real-time face detection and watchlist matching from the connected camera feed.</p>
+  </header>
+
+  @if (engineError) {
+    <p role="alert">{{ engineError }}</p>
+  }
+  @if (webcamError) {
+    <p role="alert">{{ webcamError }}</p>
+  }
+
+  <!-- ============================================================
+       Summary cards
+       ============================================================ -->
+  <section class="summary-grid">
+    <div class="summary-card">
+      <div class="summary-icon total-icon">
+        <svg lucideCctv></svg>
+      </div>
+      <div>
+        <span>Registered Cameras</span>
+        <strong>{{ loaded ? totalCameras : '—' }}</strong>
+      </div>
+    </div>
+
+    <div class="summary-card">
+      <div class="summary-icon active-icon">
+        <svg lucideWifi></svg>
+      </div>
+      <div>
+        <span>Active</span>
+        <strong>{{ loaded ? activeCameras : '—' }}</strong>
+      </div>
+    </div>
+
+    <div class="summary-card">
+      <div class="summary-icon offline-icon">
+        <svg lucideCamera></svg>
+      </div>
+      <div>
+        <span>Streaming to AI Engine</span>
+        <strong>{{ engineStatus ? streamingCameras : '—' }}</strong>
+      </div>
+    </div>
+
+    <div class="summary-card">
+      <div class="summary-icon disabled-icon">
+        <svg lucideUser></svg>
+      </div>
+      <div>
+        <span>Enrolled Faces</span>
+        <strong>{{ indexedFaces ?? '—' }}</strong>
+      </div>
+    </div>
+  </section>
+
+  <section class="report-bar">
+    <label>
+      Report matches from this feed as
+      <select [(ngModel)]="reportCameraId" (ngModelChange)="reportCameraChanged()">
+        <option value="">Preview only (no alerts raised)</option>
+        @for (camera of browserCameras; track camera.id) {
+          <option [value]="camera.id">{{ camera.name }} · {{ camera.location }}</option>
+        }
+      </select>
+    </label>
+    <small>
+      @if (browserCameras.length) {
+        Choosing a camera raises pending alerts and sightings for watchlist-manager review.
+      } @else {
+        To raise alerts from this feed, an administrator must register an ACTIVE camera with stream
+        source "browser".
+      }
+      @if (cameraLabel) {
+        Feed: {{ cameraLabel }}.
+      }
+      @if (obsPhones.length) {
+        OBS phone sources live: {{ obsPhones.length }}.
+      }
+    </small>
+  </section>
+
+  <!-- ============================================================
+       Main 2-column layout
+       ============================================================ -->
+  <section class="match-layout">
+
+    <!-- ==========================================================
+         LEFT — video + recent detections
+         ========================================================== -->
+    <div class="feed-panel">
+
+      <!-- Video area -->
+      <div class="video-wrap">
+        <video #cameraVideo autoplay muted playsinline></video>
+
+        <!-- Timestamp -->
+        <div class="overlay-timestamp">{{ formatTime(now) }}</div>
+
+        <!-- LIVE pill -->
+        <div class="overlay-live" [class.off]="!isConnected">
+          <span class="dot"></span>
+          {{ isConnected ? 'LIVE' : 'OFFLINE' }}
+        </div>
+
+        <!-- BBox layer -->
+        <div class="bbox-layer" #bboxLayer></div>
+      </div>
+
+      <!-- Recent detections -->
+      <div class="recent-section">
+        <div class="recent-head">
+          <h3>Recent Detections</h3>
+        </div>
+
+        <div class="recent-rail">
+          <div class="recent-item" *ngFor="let item of recentDetections">
+            <div class="recent-img-wrap">
+              <img [src]="item.snapshot" [alt]="'Live capture of ' + item.name" />
+            </div>
+            <div class="recent-meta">
+              <strong>{{ pct(item.confidence) }}%</strong>
+              <span>{{ item.time }}</span>
+            </div>
+            <div class="recent-bar">
+              <span [style.width.%]="pct(item.confidence)"></span>
+            </div>
+          </div>
+
+          <p class="recent-empty" *ngIf="recentDetections.length === 0">
+            No recent detections yet.
+          </p>
+        </div>
+      </div>
+    </div>
+
+    <!-- ==========================================================
+         RIGHT — Match Found panel
+         ========================================================== -->
+    <div class="match-panel">
+
+      <!-- Match found -->
+      <ng-container *ngIf="currentMatch; else noMatch">
+
+        <div class="match-head">
+          <div class="match-title">
+            <div class="match-check-circle">
+              <svg lucideCheck></svg>
+            </div>
+            <h2>Match Found</h2>
+          </div>
+
+          <div class="confidence-pill">
+            <strong>{{ pct(currentMatch.confidence) }}%</strong>
+            <span>Confidence</span>
+          </div>
+        </div>
+
+        <div class="match-subline">
+          <svg lucideShieldAlert></svg>
+          <span>{{ currentMatch.recordLabel }}</span>
+        </div>
+
+        <!-- Photos -->
+        <div class="match-photos">
+          <figure>
+            <img
+              *ngIf="currentMatch.capturedSnapshot; else noCapture"
+              [src]="currentMatch.capturedSnapshot"
+              alt="Captured"
+            />
+            <ng-template #noCapture>
+              <div class="photo-empty">No capture</div>
+            </ng-template>
+            <figcaption>Live Capture</figcaption>
+          </figure>
+
+          <div class="swap-icon">
+            <svg lucideArrowLeftRight></svg>
+          </div>
+
+          <figure>
+            <img
+              *ngIf="currentMatch.databasePhoto; else noDbPhoto"
+              [src]="currentMatch.databasePhoto"
+              alt="Database"
+            />
+            <ng-template #noDbPhoto>
+              <div class="photo-empty">No photo</div>
+            </ng-template>
+            <figcaption>Database Record</figcaption>
+          </figure>
+        </div>
+
+        @if (currentMatch.reported) {
+          <div class="watchlist-pill">
+            <svg lucideShieldAlert></svg>
+            <span>Reported for verification</span>
+          </div>
+        }
+
+        <!-- Details -->
+        <dl class="match-details">
+          <div>
+            <dt>Full Name</dt>
+            <dd>{{ currentMatch.name }}</dd>
+          </div>
+          <div>
+            <dt>Record</dt>
+            <dd>{{ currentMatch.recordLabel }}</dd>
+          </div>
+          <div>
+            <dt>Status</dt>
+            <dd>{{ currentMatch.status }}</dd>
+          </div>
+          <div>
+            <dt>{{ currentMatch.detailLabel }}</dt>
+            <dd [class.danger]="currentMatch.detail === 'HIGH'">{{ currentMatch.detail }}</dd>
+          </div>
+          <div>
+            <dt>{{ currentMatch.subjectType === 'WATCHLIST' ? 'Reason' : 'Last Seen' }}</dt>
+            <dd>{{ currentMatch.lastSeen }}</dd>
+          </div>
+        </dl>
+
+        <!-- Actions -->
+        <div class="match-actions">
+          <a
+            class="btn-primary"
+            routerLink="/investigator/timeline"
+            [queryParams]="{ subjectType: currentMatch.subjectType, subjectId: currentMatch.subjectId }"
+          >
+            <svg lucideActivity></svg>
+            View Movement Timeline
+          </a>
+        </div>
+      </ng-container>
+
+      <!-- No match -->
+      <ng-template #noMatch>
+        <div class="match-empty">
+          <div class="match-empty-icon">
+            <svg lucideCctv></svg>
+          </div>
+          <h3>Waiting for Matches</h3>
+          <p>
+            A matched person appears here as soon as a face in the feed matches an
+            enrolled watchlist person or open missing-person case.
+          </p>
+        </div>
+      </ng-template>
+    </div>
+  </section>
+</div>

@@ -1,0 +1,22 @@
+.purpose { background: var(--surface-soft); color: var(--text); border-block: 1px solid var(--line); }
+.purpose .eyebrow, .purpose .text-link { color: var(--accent-ink); }
+.purpose-copy p { color: var(--muted); font-size: 17px; max-width: 60ch; }
+.purpose-copy .lead { color: var(--text); font-size: 21px; font-weight: 500; }
+.purpose-grid { align-items: center; gap: clamp(32px, 6vw, 88px); }
+.section-heading { align-items: end; gap: 32px; }
+.section-heading > p { max-width: 34ch; font-size: 17px; }
+.feature-grid { gap: 22px; align-items: stretch; }
+.feature-card { display: flex; flex-direction: column; border-radius: 16px; padding: 30px; border: 1px solid var(--line); background: var(--surface); }
+.feature-card h3 { font-size: 21px; line-height: 1.4; margin-top: 16px; }
+.feature-card p { font-size: 16px; color: var(--muted); }
+.feature-card > a { margin-top: auto; padding-top: 20px; color: var(--accent-ink); font-weight: 600; }
+.feature-card .feature-icon { background: var(--accent-soft); color: var(--accent-ink); border-radius: 12px; }
+.workflow-grid { align-items: center; gap: clamp(28px, 5vw, 72px); }
+.workflow-preview { border-radius: 20px; overflow: hidden; box-shadow: var(--shadow); }
+.step-button { border-radius: 14px; text-align: left; }
+.step-button[aria-pressed=true] { border-color: var(--accent); background: var(--accent-soft); }
+.step-description { font-size: 16px; line-height: 1.7; }
+.role-grid article { border-radius: 16px; padding: 28px; }
+.faq p, .role-grid p { font-size: 16px; }
+@media(prefers-reduced-motion: no-preference) { .feature-card { transition: transform 200ms ease, box-shadow 200ms ease, border-color 200ms ease; } .feature-card:hover { transform: translateY(-4px); border-color: var(--accent); box-shadow: var(--shadow); } }
+@media(max-width: 680px) { .feature-card { padding: 24px; } .purpose-copy p { font-size: 16px; } }

@@ -1,0 +1,51 @@
+@media (max-width: 1250px) {
+
+  .summary-grid {
+    grid-template-columns:
+      repeat(3, minmax(0, 1fr));
+  }
+
+}
+
+@media (max-width: 950px) {
+
+  .activity-grid,
+  .lower-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .face-search-content {
+    grid-template-columns: 1fr;
+  }
+
+  .upload-section {
+    border-right: none;
+    border-bottom: 1px solid var(--line);
+  }
+
+}
+
+@media (max-width: 750px) {
+
+  .summary-grid {
+    grid-template-columns:
+      repeat(2, minmax(0, 1fr));
+  }
+
+  .dashboard-header {
+    flex-direction: column;
+  }
+
+}
+
+@media (max-width: 520px) {
+
+  .summary-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .date-card {
+    width: 100%;
+  }
+
+}

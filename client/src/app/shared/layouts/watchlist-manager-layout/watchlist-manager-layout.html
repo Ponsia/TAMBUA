@@ -1,0 +1,117 @@
+<div class="app-shell">
+  <aside
+    class="sidebar"
+    id="workspace-sidebar"
+    [class.mobile-open]="mobileMenuOpen"
+    (keydown.escape)="mobileMenuOpen = false"
+  >
+    <div class="logo">
+      <a routerLink="/" aria-label="e-TAMBUA home"><app-brand-logo /></a>
+    </div>
+
+    <nav class="navigation" (click)="mobileMenuOpen = false">
+      <a
+        routerLink="/watchlist-manager"
+        routerLinkActive="active"
+        [routerLinkActiveOptions]="{ exact: true }"
+        class="nav-item"
+      >
+        <svg lucideLayoutDashboard></svg>
+
+        <span> Dashboard </span>
+      </a>
+
+      <div class="nav-section-title">CASE MANAGEMENT</div>
+
+      <a routerLink="/watchlist-manager/missing-persons" routerLinkActive="active" class="nav-item">
+        <svg lucideUserSearch></svg>
+
+        <span> Missing Persons </span>
+      </a>
+
+      <a routerLink="/watchlist-manager/watchlist" routerLinkActive="active" class="nav-item">
+        <svg lucideShieldAlert></svg>
+
+        <span> Watchlist </span>
+      </a>
+
+      <div class="nav-section-title">MONITORING</div>
+
+      <a routerLink="/watchlist-manager/alerts" routerLinkActive="active" class="nav-item">
+        <svg lucideBell></svg>
+
+        <span> Alerts </span>
+      </a>
+
+      <a routerLink="/watchlist-manager/sightings" routerLinkActive="active" class="nav-item">
+        <svg lucideCctv></svg>
+
+        <span> Sightings </span>
+      </a>
+
+      <a routerLink="/watchlist-manager/timeline" routerLinkActive="active" class="nav-item">
+        <svg lucideActivity></svg>
+
+        <span> Movement Timeline </span>
+      </a>
+
+      <div class="nav-section-title">IDENTIFICATION</div>
+
+      <a routerLink="/watchlist-manager/face-search" routerLinkActive="active" class="nav-item">
+        <svg lucideSearch></svg>
+
+        <span> Face Search </span>
+      </a>
+    </nav>
+
+    <div class="sidebar-footer">
+      <button type="button" class="logout-button" (click)="logout()">
+        <svg lucideLogOut></svg>
+
+        <span> Logout </span>
+      </button>
+    </div>
+  </aside>
+  @if (mobileMenuOpen) {
+    <button
+      type="button"
+      class="workspace-overlay"
+      aria-label="Close navigation"
+      (click)="mobileMenuOpen = false"
+    ></button>
+  }
+
+  <div class="main-area">
+    <header class="topbar">
+      <div class="topbar-left">
+        <button
+          type="button"
+          class="workspace-menu"
+          aria-label="Toggle navigation"
+          aria-controls="workspace-sidebar"
+          [attr.aria-expanded]="mobileMenuOpen"
+          (click)="mobileMenuOpen = !mobileMenuOpen"
+        >
+          ☰
+        </button>
+        <div class="system-status">
+          <span> Watchlist Management Console </span>
+        </div>
+      </div>
+
+      <div class="topbar-right">
+        <app-theme-toggle />
+        <button type="button" class="notification-button" routerLink="/watchlist-manager/alerts">
+          <svg lucideBell></svg>
+        </button>
+
+        <app-profile-menu />
+      </div>
+    </header>
+
+    <main class="page-content">
+      <router-outlet></router-outlet>
+    </main>
+    <app-site-footer />
+  </div>
+</div>
